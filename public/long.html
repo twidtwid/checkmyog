@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Does your link preview survive a domain this long?</title>
+<link rel="canonical" href="{{HOST_URL}}/">
+<meta name="description" content="A 63-character name, the longest label the DNS allows, on a 13-letter top-level domain: 77 characters. The tags, the poster and the video are all correct, so whatever your app did with this link, it was the length. From Dayward AI, the people behind checkmyog.com.">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Dayward">
+<meta property="og:url" content="{{HOST_URL}}/">
+<meta property="og:title" content="Does your link preview survive a domain this long?">
+<meta property="og:description" content="A 63-character name, the longest label the DNS allows, on a 13-letter top-level domain: 77 characters. The tags, the poster and the video are all correct, so whatever your app did with this link, it was the length. From Dayward AI, the people behind checkmyog.com.">
+<meta property="og:image" content="{{HOST_URL}}/long-og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="The 77-character domain name in big type under the Dayward sun, with a line saying every og tag on the page is correct, so if your app choked, it was the length.">
+<meta property="og:video" content="{{HOST_URL}}/long-og.mp4">
+<meta property="og:video:secure_url" content="{{HOST_URL}}/long-og.mp4">
+<meta property="og:video:type" content="video/mp4">
+<meta property="og:video:width" content="1200">
+<meta property="og:video:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAuMCAxMDAuMCIgd2lkdGg9IjEwMCIgaGVpZ2h0PSIxMDAiPjx0aXRsZT5EYXl3YXJkPC90aXRsZT48ZGVmcz48Y2xpcFBhdGggaWQ9ImR3Ij48Y2lyY2xlIGN4PSI1MCIgY3k9IjUwIiByPSI0MiIvPjwvY2xpcFBhdGg+PC9kZWZzPjxnIGNsaXAtcGF0aD0idXJsKCNkdykiPjxyZWN0IHdpZHRoPSIxMDAiIGhlaWdodD0iNjIiIGZpbGw9IiMyNDQzQzQiLz48Y2lyY2xlIGN4PSI1MCIgY3k9IjU2IiByPSIyNiIgZmlsbD0iI0UwNkE0MiIvPjxyZWN0IHk9IjQ0IiB3aWR0aD0iMTAwIiBoZWlnaHQ9IjIiIGZpbGw9IiMyNDQzQzQiLz48cmVjdCB5PSI1MCIgd2lkdGg9IjEwMCIgaGVpZ2h0PSIzIiBmaWxsPSIjMjQ0M0M0Ii8+PHJlY3QgeT0iNTYiIHdpZHRoPSIxMDAiIGhlaWdodD0iNCIgZmlsbD0iIzI0NDNDNCIvPjxyZWN0IHk9IjYyIiB3aWR0aD0iMTAwIiBoZWlnaHQ9IjM4IiBmaWxsPSIjN0E5NUVFIi8+PC9nPjwvc3ZnPg==">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@125,600&family=Schibsted+Grotesk:wght@400;500&display=swap">
+<style>
+/* The daywardai.com look: one narrow column, the lockup up top with the sun rising once, Archivo for the one headline, Schibsted Grotesk for the rest. Light and dark follow the system. */
+:root {
+  --bg: #F4F4F1; --ink: #15161A; --muted: #55585F; --rule: #DCDCD6; --accent: #2443C4; --on-accent: #FFFFFF;
+  --font: "Schibsted Grotesk", "Helvetica Neue", Arial, sans-serif;
+  --display: "Archivo", "Helvetica Neue", Arial, sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) { --bg: #0F1013; --ink: #EDEDEA; --muted: #A3A6AE; --rule: #2A2C32; --accent: #7A95EE; --on-accent: #0F1013; color-scheme: dark; }
+}
+:root[data-theme="dark"] { --bg: #0F1013; --ink: #EDEDEA; --muted: #A3A6AE; --rule: #2A2C32; --accent: #7A95EE; --on-accent: #0F1013; color-scheme: dark; }
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body { background: var(--bg); color: var(--ink); font-family: var(--font); font-size: 18px; line-height: 1.6; -webkit-font-smoothing: antialiased; }
+a { color: var(--accent); text-decoration-thickness: 1px; text-underline-offset: 3px; }
+a:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 3px; }
+p { margin: 0; }
+.wrap { max-width: 640px; margin: 0 auto; padding: 0 max(20px, env(safe-area-inset-left, 0px)); }
+header { padding-block: 28px 0; }
+header a { display: inline-block; color: var(--ink); }
+header svg { height: 36px; width: auto; display: block; }
+.sun { transform-box: view-box; animation: rise 2.8s cubic-bezier(.2,.7,.2,1) .3s both; }
+@keyframes rise { from { transform: translateY(34px); } to { transform: translateY(0); } }
+@media (prefers-reduced-motion: reduce) { .sun { animation: none; } }
+h1 { font-family: var(--display); font-stretch: 125%; font-weight: 600; font-size: clamp(26px, 6.4vw, 40px); line-height: 1.12; letter-spacing: -0.01em; margin: clamp(40px, 9vw, 72px) 0 20px; overflow-wrap: anywhere; }
+h1 .tld { color: var(--accent); white-space: nowrap; }
+.lede p + p { margin-top: 14px; }
+section { border-top: 1px solid var(--rule); margin-top: clamp(40px, 8vw, 56px); padding-top: 24px; }
+h2 { font-size: 18px; font-weight: 500; margin: 0 0 16px; }
+.ways p + p { margin-top: 14px; }
+.ways b { font-weight: 500; }
+.btn { display: inline-block; margin-top: 20px; background: var(--accent); color: var(--on-accent); text-decoration: none; font-weight: 500; padding: 12px 20px; border-radius: 8px; }
+.btn:hover { filter: brightness(1.08); }
+footer { margin-top: 64px; padding-block: 24px 40px; font-size: 14px; color: var(--muted); border-top: 1px solid var(--rule); }
+</style>
+<script>
+/* PostHog, cookieless (memory persistence: no cookies, no banner). The server fills in the key; with none set (self-hosting) nothing loads. */
+window.PH_KEY = "{{POSTHOG_KEY}}"; window.PH_HOST = "{{POSTHOG_HOST}}";
+if (/^phc_/.test(PH_KEY)) {
+!function(t,e){var o,n,p,r;e.__SV||(window.posthog=e,e._i=[],e.init=function(i,s,a){function g(t,e){var o=e.split(".");2==o.length&&(t=t[o[0]],e=o[1]),t[e]=function(){t.push([e].concat(Array.prototype.slice.call(arguments,0)))}}(p=t.createElement("script")).type="text/javascript",p.crossOrigin="anonymous",p.async=!0,p.src=s.api_host.replace(".i.posthog.com","-assets.i.posthog.com")+"/static/array.js",(r=t.getElementsByTagName("script")[0]).parentNode.insertBefore(p,r);var u=e;for(void 0!==a?u=e[a]=[]:a="posthog",u.people=u.people||[],u.toString=function(t){var e="posthog";return"posthog"!==a&&(e+="."+a),t||(e+=" (stub)"),e},u.people.toString=function(){return u.toString(1)+".people (stub)"},o="init capture register register_once unregister opt_out_capturing has_opted_out_capturing opt_in_capturing reset identify alias set_config".split(" "),n=0;n<o.length;n++)g(u,o[n]);e._i.push([i,s,a])},e.__SV=1)}(document,window.posthog||[]);
+posthog.init(PH_KEY, { api_host: PH_HOST, persistence: "memory", person_profiles: "identified_only", capture_pageview: false,
+  loaded: function (ph) { try { var q = new URLSearchParams(location.search), ref = q.get("ref") || q.get("utm_source"); ph.register({ site: "longdomain" }); if (ref) ph.register({ ref: ref }); } catch (e) {} ph.capture("$pageview"); } });
+}
+</script>
+</head>
+<body>
+<div class="wrap">
+  <header><a href="https://daywardai.com/?utm_source=longdomain" aria-label="Dayward" data-track="dayward_click"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 6777.0 1389.2" role="img" aria-label="Dayward"><g transform="translate(143.33 143.33) scale(11.0250)"><defs><clipPath id="dw"><circle cx="50" cy="50" r="42"/></clipPath></defs><g clip-path="url(#dw)"><rect width="100" height="62" fill="#2443C4"/><circle class="sun" cx="50" cy="56" r="26" fill="#E06A42"/><rect y="44" width="100" height="2" fill="#2443C4"/><rect y="50" width="100" height="3" fill="#2443C4"/><rect y="56" width="100" height="4" fill="#2443C4"/><rect y="62" width="100" height="38" fill="#7A95EE"/></g></g><path transform="translate(1403.62 1019.05) scale(1 -1)" fill="currentColor" d="M96 0L96 687L464 687Q590 687 680.5 647.5Q771 608 819.5 531.5Q868 455 868 343Q868 232 819.5 155.5Q771 79 680.5 39.5Q590 0 464 0ZM252 129L455 129Q509 129 555 142Q601 155 635.5 180Q670 205 688.5 243.5Q707 282 707 332L707 355Q707 405 688.5 443.5Q670 482 635.5 507Q601 532 555 545Q509 558 455 558L252 558Z M1181.96 -12Q1134.96 -12 1093.96 -4.5Q1052.96 3 1022.96 20.5Q992.96 38 975.46 68Q957.96 98 957.96 143Q957.96 207 992.96 243Q1027.96 279 1091.96 295Q1155.96 311 1241.46 315Q1326.96 319 1426.96 319L1426.96 340Q1426.96 374 1410.46 394Q1393.96 414 1359.96 422.5Q1325.96 431 1270.96 431Q1226.96 431 1193.46 425Q1159.96 419 1140.96 407Q1121.96 395 1121.96 377L1121.96 366L979.96 366Q978.96 370 978.46 373.5Q977.96 377 977.96 382Q977.96 430 1012.46 465Q1046.96 500 1113.96 519.5Q1180.96 539 1281.96 539Q1374.96 539 1438.96 522Q1502.96 505 1535.96 466Q1568.96 427 1568.96 361L1568.96 136Q1568.96 117 1576.46 107Q1583.96 97 1602.96 97L1653.96 97L1653.96 5Q1643.96 1 1616.96 -5.5Q1589.96 -12 1557.96 -12Q1512.96 -12 1487.96 -1Q1462.96 10 1452.46 29Q1441.96 48 1437.96 71L1429.96 71Q1401.96 45 1362.96 26Q1323.96 7 1277.96 -2.5Q1231.96 -12 1181.96 -12ZM1217.96 96Q1248.96 96 1284.96 103Q1320.96 110 1353.46 123Q1385.96 136 1406.46 156Q1426.96 176 1426.96 204L1426.96 231Q1315.96 231 1243.46 223.5Q1170.96 216 1135.46 198Q1099.96 180 1099.96 148Q1099.96 126 1116.96 115Q1133.96 104 1161.46 100Q1188.96 96 1217.96 96Z M1784.96 -198Q1756.96 -198 1733.46 -193.5Q1709.96 -189 1689.96 -182L1689.96 -90L1759.96 -90Q1804.96 -90 1831.96 -79.5Q1858.96 -69 1875.46 -49.5Q1891.96 -30 1906.96 0L1648.96 527L1803.96 527L1916.96 273Q1925.96 255 1936.96 229Q1947.96 203 1959.96 176Q1971.96 149 1980.96 129L1988.96 129Q1988.96 130 1994.46 145.5Q1999.96 161 2009.46 184Q2018.96 207 2028.96 232Q2038.96 257 2046.96 276L2147.96 527L2296.96 527L2080.96 50Q2054.96 -9 2029.46 -55Q2003.96 -101 1971.46 -133Q1938.96 -165 1893.46 -181.5Q1847.96 -198 1784.96 -198Z M2515.17 0L2301.17 527L2453.17 527L2547.17 270Q2556.17 247 2563.17 225Q2570.17 203 2575.67 185.5Q2581.17 168 2583.17 157L2591.17 157Q2594.17 168 2599.67 185Q2605.17 202 2612.67 224Q2620.17 246 2628.17 268L2714.17 527L2871.17 527L2957.17 268Q2960.17 261 2966.17 242Q2972.17 223 2979.17 200Q2986.17 177 2991.17 157L2999.17 157Q3004.17 175 3011.17 195Q3018.17 215 3024.67 235Q3031.17 255 3035.17 268L3129.17 527L3271.17 527L3057.17 0L2918.17 0L2834.17 243Q2827.17 266 2818.67 290.5Q2810.17 315 2802.67 336.5Q2795.17 358 2790.17 372L2783.17 372Q2778.17 357 2770.67 334Q2763.17 311 2755.17 286.5Q2747.17 262 2740.17 242L2658.17 0Z M3531.65 -12Q3484.65 -12 3443.65 -4.5Q3402.65 3 3372.65 20.5Q3342.65 38 3325.15 68Q3307.65 98 3307.65 143Q3307.65 207 3342.65 243Q3377.65 279 3441.65 295Q3505.65 311 3591.15 315Q3676.65 319 3776.65 319L3776.65 340Q3776.65 374 3760.15 394Q3743.65 414 3709.65 422.5Q3675.65 431 3620.65 431Q3576.65 431 3543.15 425Q3509.65 419 3490.65 407Q3471.65 395 3471.65 377L3471.65 366L3329.65 366Q3328.65 370 3328.15 373.5Q3327.65 377 3327.65 382Q3327.65 430 3362.15 465Q3396.65 500 3463.65 519.5Q3530.65 539 3631.65 539Q3724.65 539 3788.65 522Q3852.65 505 3885.65 466Q3918.65 427 3918.65 361L3918.65 136Q3918.65 117 3926.15 107Q3933.65 97 3952.65 97L4003.65 97L4003.65 5Q3993.65 1 3966.65 -5.5Q3939.65 -12 3907.65 -12Q3862.65 -12 3837.65 -1Q3812.65 10 3802.15 29Q3791.65 48 3787.65 71L3779.65 71Q3751.65 45 3712.65 26Q3673.65 7 3627.65 -2.5Q3581.65 -12 3531.65 -12ZM3567.65 96Q3598.65 96 3634.65 103Q3670.65 110 3703.15 123Q3735.65 136 3756.15 156Q3776.65 176 3776.65 204L3776.65 231Q3665.65 231 3593.15 223.5Q3520.65 216 3485.15 198Q3449.65 180 3449.65 148Q3449.65 126 3466.65 115Q3483.65 104 3511.15 100Q3538.65 96 3567.65 96Z M4064.65 0L4064.65 527L4177.65 527L4188.65 434L4196.65 434Q4208.65 462 4229.65 486Q4250.65 510 4282.15 524.5Q4313.65 539 4352.65 539Q4371.65 539 4389.15 536.5Q4406.65 534 4420.65 529L4420.65 406L4350.65 406Q4310.65 406 4283.15 393Q4255.65 380 4238.65 357Q4221.65 334 4213.65 306.5Q4205.65 279 4205.65 250L4205.65 0Z M4729 -12Q4648 -12 4587.5 18Q4527 48 4493.5 109.5Q4460 171 4460 263Q4460 357 4493 418Q4526 479 4584.5 509Q4643 539 4722 539Q4762 539 4800 530Q4838 521 4869 503.5Q4900 486 4922 461L4930 461L4930 724L5071 724L5071 0L4957 0L4945 83L4937 83Q4899 31 4846.5 9.5Q4794 -12 4729 -12ZM4767 106Q4818 106 4854.5 123.5Q4891 141 4910.5 175.5Q4930 210 4930 259L4930 267Q4930 305 4919 333.5Q4908 362 4886.5 381Q4865 400 4834 410.5Q4803 421 4765 421Q4715 421 4679 403.5Q4643 386 4623.5 352.5Q4604 319 4604 271L4604 256Q4604 208 4624 174Q4644 140 4680 123Q4716 106 4767 106Z"/></svg></a></header>
+  <main>
+    <h1>thisisa<wbr>ridiculously<wbr>long<wbr>domain<wbr>name<wbr>made<wbr>only<wbr>to<wbr>test<wbr>your<wbr>link<wbr>previews<wbr><span class="tld">.international</span></h1>
+    <div class="lede">
+      <p>This name is 77 characters long: 63 before the dot, which is as many as the DNS allows in one label, and a 13-letter top-level domain after it.</p>
+      <p>Everything else about this page is right. The Open Graph tags are complete, the poster is 1200 by 630, the og:video is a six-second MP4 that plays in iMessage, and there is a favicon. So whatever your app does with this link, it is reacting to the length of the name and nothing else.</p>
+    </div>
+
+    <section>
+      <h2>Try it</h2>
+      <p>Paste the link into iMessage, Discord, Slack, X, WhatsApp, Telegram, or anywhere else that makes a preview. Then look at what the crawlers saw.</p>
+      <a class="btn" data-track="check_click" href="https://checkmyog.com/?url={{HOST_URL}}/&amp;utm_source=longdomain">Check this page on checkmyog.com</a>
+    </section>
+
+    <section class="ways">
+      <h2>What the page carries</h2>
+      <p><b>og:image.</b> A 1200 by 630 PNG, with alt text.</p>
+      <p><b>og:video.</b> An H.264 MP4, six seconds, no audio, faststart, served with range requests.</p>
+      <p><b>twitter:card.</b> summary_large_image, so X shows the large card.</p>
+      <p><b>The rest.</b> A title, a description, a canonical URL, a site name, a favicon, and https.</p>
+    </section>
+
+    <section>
+      <h2>Why it exists</h2>
+      <p>Dayward AI made it as a stress test for <a href="https://checkmyog.com/" data-track="checkmyog_click">checkmyog.com</a>, which shows how a link will look in each app before you share it. Both are <a href="https://github.com/twidtwid/checkmyog" data-track="github_click">open source</a>.</p>
+    </section>
+  </main>
+  <footer>Dayward LLC · San Jose, California</footer>
+</div>
+<script>
+/* Named click events for the PostHog dashboard: data-track="event". sendBeacon so the event survives navigation. */
+document.addEventListener('click', function (e) {
+  var a = e.target.closest && e.target.closest('[data-track]');
+  if (!a || !window.posthog || !posthog.capture) return;
+  try { posthog.capture(a.dataset.track, { href: a.getAttribute('href'), site: 'longdomain' }, { transport: 'sendBeacon' }); } catch (err) {}
+});
+</script>
+</body>
+</html>

@@ -45,6 +45,7 @@ Errors are JSON `{"error": "..."}` with status 400 (bad or refused URL: private 
 - Tags: og:video, og:video:secure_url, og:video:type=video/mp4, og:video:width, og:video:height, plus og:image (the poster) with og:image:width/height and og:image:alt, and twitter:card=summary_large_image.
 - Version the video URL (for example `?v=<hash>`) when the file changes; previews are cached by URL.
 - A known-good page to test any app with: {{PUBLIC_URL}}/ itself (its tags, video and poster pass every check).
+- A known-good page on the longest label the DNS allows (63 characters, 77 with the TLD), to see what an app does with a very long domain: https://thisisaridiculouslylongdomainnamemadeonlytotestyourlinkpreviews.international/ (og:image, og:video, every check passes).
 - X overlays the domain in a dark pill at the bottom-left of the card image (13 px text about 12 px from the edges; a long domain is cut with an ellipsis). The pill keeps its size while the card shrinks with the screen, so on a phone it covers roughly the lower fifth of the image and, for a typical domain, the left third: keep text and logos out of that corner. Keep important content away from the edges too: some apps crop to a different aspect or round the corners.
 
 ## Pages without og:image, or without any og tags

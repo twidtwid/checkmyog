@@ -509,16 +509,23 @@ class Handler(SimpleHTTPRequestHandler):
         self.end_headers()
         return io.BytesIO(body)
 
-    # Files served with {{PUBLIC_URL}}, {{POSTHOG_KEY}} and {{POSTHOG_HOST}} filled in.
+    # Files served with {{PUBLIC_URL}}, {{POSTHOG_KEY}}, {{POSTHOG_HOST}} and {{HOST_URL}} filled in.
     TEMPLATES = {"/": ("index.html", "text/html; charset=utf-8"),
                  "/index.html": ("index.html", "text/html; charset=utf-8"),
                  "/llms.txt": ("llms.txt", "text/plain; charset=utf-8"),
                  "/openapi.json": ("openapi.json", "application/json")}
+    # Other hostnames this app answers for, each with its own front page: the
+    # 77-character test domain serves a page whose og set is correct, so whatever an
+    # app does with that link, it is the length of the domain and nothing else.
+    HOST_PAGES = {"thisisaridiculouslylongdomainnamemadeonlytotestyourlinkpreviews.international": "long.html"}
 
     def _template(self, name, ctype):
         with open(os.path.join(ROOT, name), encoding="utf-8") as f:
             text = f.read()
-        for k, v in (("PUBLIC_URL", PUBLIC_URL), ("POSTHOG_KEY", POSTHOG_KEY), ("POSTHOG_HOST", POSTHOG_HOST)):
+        host = (self.headers.get("Host") or "").split(":")[0].lower()
+        host_url = ("https://" + host) if host in self.HOST_PAGES else PUBLIC_URL
+        for k, v in (("PUBLIC_URL", PUBLIC_URL), ("POSTHOG_KEY", POSTHOG_KEY), ("POSTHOG_HOST", POSTHOG_HOST),
+                     ("HOST_URL", host_url)):
             text = text.replace("{{" + k + "}}", v)
         self._text(200, text, ctype)
 
@@ -566,6 +573,9 @@ class Handler(SimpleHTTPRequestHandler):
             return self._text(200, "ok\n", "text/plain; charset=utf-8")
         if u.path in ("/api", "/api/"):
             return self._template("llms.txt", "text/markdown; charset=utf-8")
+        host = (self.headers.get("Host") or "").split(":")[0].lower()
+        if u.path in ("/", "/index.html") and host in self.HOST_PAGES:
+            return self._template(self.HOST_PAGES[host], "text/html; charset=utf-8")
         if u.path in self.TEMPLATES:
             return self._template(*self.TEMPLATES[u.path])
         if u.path == "/api/stats":

@@ -142,6 +142,24 @@ class EndToEnd(unittest.TestCase):
         except urllib.error.HTTPError as e:
             return e.code, e.headers.get("Content-Type"), e.read().decode()
 
+    def test_long_domain_host_serves_its_own_page(self):
+        import http.client
+        host = next(iter(server.Handler.HOST_PAGES))
+        c = http.client.HTTPConnection("127.0.0.1", self.app.server_address[1], timeout=10)
+        c.request("GET", "/", headers={"Host": host})
+        r = c.getresponse()
+        body = r.read().decode()
+        c.close()
+        self.assertEqual(r.status, 200)
+        self.assertNotIn("{{", body)
+        self.assertIn(f'<meta property="og:image" content="https://{host}/long-og.png">', body)
+        self.assertIn(f'<meta property="og:video" content="https://{host}/long-og.mp4">', body)
+        self.assertIn(f'<link rel="canonical" href="https://{host}/">', body)
+        self.assertIn("Check My OG", self.get("/")[2])  # the main host is still the checker
+        for name, magic in (("/long-og.png", b"\x89PNG"), ("/long-og.mp4", b"ftyp")):
+            with urllib.request.urlopen(self.base + name, timeout=10) as rr:
+                self.assertIn(magic, rr.read(32))
+
     def test_inspect_json(self):
         code, _, body = self.get(f"/api/inspect?url=http://127.0.0.1:{self.port}/moved")
         self.assertEqual(code, 200)
