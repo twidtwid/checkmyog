@@ -3,10 +3,22 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>OG Checker</title>
+<title>Check My OG: see a link preview before you share it</title>
 <link rel="alternate" type="text/markdown" title="LLM instructions" href="/llms.txt">
 <link rel="service-desc" type="application/json" href="/openapi.json">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="canonical" href="{{PUBLIC_URL}}/">
 <meta name="description" content="Check a page's Open Graph link preview as crawlers see it: tags, og:image, og:video, file encoding, fallback, and what each app will show.">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Check My OG">
+<meta property="og:url" content="{{PUBLIC_URL}}/">
+<meta property="og:title" content="Check My OG">
+<meta property="og:description" content="See how a link will preview in iMessage, Discord, X, Slack and the rest before you share it. Checks og:image and og:video files, not just tags.">
+<meta property="og:image" content="{{PUBLIC_URL}}/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Check My OG: link preview checker for og:image and og:video">
+<meta name="twitter:card" content="summary_large_image">
 <style>
 :root {
   --bg: #ffffff; --bg2: #f6f7f9; --fg: #1b1d21; --muted: #5f6672; --faint: #8a909b; --line: #e3e6ea; --line2: #d3d7dd;
@@ -148,19 +160,35 @@ details > summary { cursor: pointer; color: var(--muted); font-size: 12px; font-
   .plat td.note { grid-column: 1 / -1; grid-row: 2; padding-top: 0; }
   .kv td:first-child { width: 38%; }
 }
+.site-foot { max-width: 1440px; margin: 0 auto; padding: 14px 16px 32px; border-top: 1px solid var(--line); color: var(--faint); font-size: 12px;
+  display: flex; flex-wrap: wrap; gap: 6px 24px; justify-content: space-between; }
+.site-foot p { margin: 0; max-width: 90ch; }
+.site-foot a { color: var(--muted); }
+.site-foot .by { display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; text-decoration: none; }
+.site-foot .by svg { width: 14px; height: 14px; flex: none; }
+.site-foot .by:hover span { text-decoration: underline; }
 [hidden] { display: none !important; }
 </style>
+<script>
+/* PostHog, cookieless (memory persistence: no cookies, no banner). The server fills in the key; with none set (self-hosting) nothing loads. */
+window.PH_KEY = "{{POSTHOG_KEY}}"; window.PH_HOST = "{{POSTHOG_HOST}}";
+if (/^phc_/.test(PH_KEY)) {
+!function(t,e){var o,n,p,r;e.__SV||(window.posthog=e,e._i=[],e.init=function(i,s,a){function g(t,e){var o=e.split(".");2==o.length&&(t=t[o[0]],e=o[1]),t[e]=function(){t.push([e].concat(Array.prototype.slice.call(arguments,0)))}}(p=t.createElement("script")).type="text/javascript",p.crossOrigin="anonymous",p.async=!0,p.src=s.api_host.replace(".i.posthog.com","-assets.i.posthog.com")+"/static/array.js",(r=t.getElementsByTagName("script")[0]).parentNode.insertBefore(p,r);var u=e;for(void 0!==a?u=e[a]=[]:a="posthog",u.people=u.people||[],u.toString=function(t){var e="posthog";return"posthog"!==a&&(e+="."+a),t||(e+=" (stub)"),e},u.people.toString=function(){return u.toString(1)+".people (stub)"},o="init capture register register_once unregister opt_out_capturing has_opted_out_capturing opt_in_capturing reset identify alias set_config".split(" "),n=0;n<o.length;n++)g(u,o[n]);e._i.push([i,s,a])},e.__SV=1)}(document,window.posthog||[]);
+posthog.init(PH_KEY, { api_host: PH_HOST, persistence: "memory", person_profiles: "identified_only", capture_pageview: false,
+  loaded: function (ph) { try { var q = new URLSearchParams(location.search), ref = q.get("ref") || q.get("utm_source"); ph.register({ site: "checkmyog" }); if (ref) ph.register({ ref: ref }); } catch (e) {} ph.capture("$pageview"); } });
+}
+</script>
 </head>
 <body>
 <header class="bar"><div class="bar-in">
-  <h1>OG Checker</h1>
+  <h1>Check My OG</h1>
   <form id="f">
     <label for="u" hidden>Page URL</label>
-    <input id="u" name="url" type="url" inputmode="url" spellcheck="false" placeholder="https://example.com/" value="https://spalterdigital.com/" required>
+    <input id="u" name="url" type="text" inputmode="url" autocomplete="url" spellcheck="false" placeholder="https://example.com/" value="https://spalterdigital.com/" required>
     <button id="go" type="submit">Check</button>
   </form>
   <span class="meta" id="meta"></span>
-  <nav class="specs" aria-label="Specs"><a href="https://ogp.me/" target="_blank" rel="noopener">Open Graph spec</a> · <a href="https://ogp.me/#structured" target="_blank" rel="noopener">og:video</a> · <a href="/llms.txt">llms.txt</a></nav>
+  <nav class="specs" aria-label="Specs"><a href="https://ogp.me/" target="_blank" rel="noopener">Open Graph spec</a> · <a href="https://ogp.me/#structured" target="_blank" rel="noopener">og:video</a> · <a href="/llms.txt">llms.txt</a> · <a href="https://github.com/twidtwid/checkmyog" data-track="github_click" data-track-to="nav">GitHub</a></nav>
 </div></header>
 
 <main class="page">
@@ -225,13 +253,23 @@ details > summary { cursor: pointer; color: var(--muted); font-size: 12px; font-
       </section>
     </div>
   </div>
-  <p class="intro" id="agents"><b>For agents and scripts:</b> <code>curl "https://ogchecker-bq3fs.sprites.app/api/inspect?url=https://example.com/&amp;format=md"</code> returns a Markdown report; drop <code>&amp;format=md</code> for JSON. Instructions: <a href="/llms.txt">llms.txt</a> · <a href="/openapi.json">OpenAPI</a>. Specs: <a href="https://ogp.me/">Open Graph protocol</a> · <a href="https://developer.apple.com/documentation/technotes/tn3156-create-rich-previews-for-messages">Apple TN3156 (Messages previews)</a> · <a href="https://docs.discord.com/developers/link-previews/overview">Discord link previews</a>. No key; 20 checks a minute.</p>
+  <p class="intro" id="agents"><b>For agents and scripts:</b> <code>curl "{{PUBLIC_URL}}/api/inspect?url=https://example.com/&amp;format=md"</code> returns a Markdown report; drop <code>&amp;format=md</code> for JSON. Instructions: <a href="/llms.txt">llms.txt</a> · <a href="/openapi.json">OpenAPI</a>. Specs: <a href="https://ogp.me/">Open Graph protocol</a> · <a href="https://developer.apple.com/documentation/technotes/tn3156-create-rich-previews-for-messages">Apple TN3156 (Messages previews)</a> · <a href="https://docs.discord.com/developers/link-previews/overview">Discord link previews</a>. No key; 20 checks a minute.</p>
   <p class="intro">Fetches the page as Twitterbot and facebookexternalhit, then fetches and probes the og:video and og:image files on the server. The "This browser" checks and every player on this page run in your browser. App previews follow each app's layout and are approximate.</p>
 </main>
+<footer class="site-foot">
+  <p>Open source (MIT). Wrong verdict, an app that behaves differently, or a check we're missing? <a href="https://github.com/twidtwid/checkmyog/issues/new/choose" data-track="github_click" data-track-to="issue">Open an issue</a> or <a href="https://github.com/twidtwid/checkmyog/blob/main/CONTRIBUTING.md" data-track="github_click" data-track-to="contributing">send a pull request</a>. Agents welcome: the same steps are in <a href="https://github.com/twidtwid/checkmyog/blob/main/CONTRIBUTING.md#for-ai-agents">CONTRIBUTING.md</a> and <a href="/llms.txt">llms.txt</a>.</p>
+  <a class="by" href="https://daywardai.com/?utm_source=checkmyog" data-track="dayward_click"><svg viewBox="0 0 16 16" aria-hidden="true"><defs><clipPath id="dwf"><circle cx="8" cy="8" r="8"/></clipPath></defs><g clip-path="url(#dwf)"><rect width="16" height="10" fill="#2443C4"/><circle cx="8" cy="9" r="5" fill="#E06A42"/><rect y="8" width="16" height="1" fill="#2443C4"/><rect y="10" width="16" height="6" fill="#7A95EE"/></g></svg><span>Made by Dayward AI</span></a>
+</footer>
 
 <script>
 const $ = (id) => document.getElementById(id);
 const el = (tag, props = {}, kids = []) => { const n = Object.assign(document.createElement(tag), props); n.append(...kids.filter((k) => k !== null && k !== undefined && k !== "")); return n; };
+// Analytics: a no-op unless PostHog loaded.
+const track = (event, props) => { try { window.posthog && posthog.capture && posthog.capture(event, props); } catch (e) {} };
+document.addEventListener("click", (e) => {
+  const a = e.target.closest && e.target.closest("[data-track]");
+  if (a) try { window.posthog && posthog.capture(a.dataset.track, { to: a.dataset.trackTo || a.href }, { transport: "sendBeacon" }); } catch (err) {}
+});
 const GROUP_NAMES = { page: "Page", tags: "Tags", video: "Video file", platform: "Platform rules", poster: "Poster (fallback)", browser: "This browser", other: "Other" };
 let support = null, current = null, mode = "video", browser = {};
 
@@ -299,6 +337,7 @@ function drawPreviews() {
   $("i-lab").textContent = lab("imessage"); $("d-lab").textContent = lab("discord");
 }
 function setMode(m) {
+  if (m !== mode) track("preview_mode_changed", { mode: m });
   mode = m;
   $("m-video").setAttribute("aria-pressed", String(m === "video"));
   $("m-fallback").setAttribute("aria-pressed", String(m === "fallback"));
@@ -462,15 +501,20 @@ function browserChecks(c, seq) {
 }
 
 // ---------- run ----------
-async function run(url) {
+async function run(url, trigger) {
   const seq = (run.n = (run.n || 0) + 1);
   $("go").disabled = true; $("go").textContent = "Checking…"; $("err").hidden = true; $("meta").textContent = "";
   const t0 = performance.now();
   try {
-    const r = await fetch("/api/inspect?url=" + encodeURIComponent(url));
+    const r = await fetch("/api/inspect?url=" + encodeURIComponent(url), { headers: { "X-Checkmyog-Client": "web" } });
     const d = await r.json();
-    if (!r.ok) throw new Error(d.error || `HTTP ${r.status}`);
+    if (!r.ok) throw Object.assign(new Error(d.error || `HTTP ${r.status}`), { status: r.status });
     if (seq !== run.n) return;
+    const ms = Math.round(performance.now() - t0);
+    let domain = ""; try { domain = new URL(d.final_url).hostname; } catch (e) {}
+    track("check_run", { url, final_url: d.final_url, domain, trigger, duration_ms: ms,
+      checks_passed: d.summary.checks_passed, checks_failed: d.summary.checks_failed.length, failed_checks: d.summary.checks_failed,
+      video_plays_in: d.summary.video_plays_in, has_video: !!d.card.video, has_image: !!d.card.image });
     current = d; browser = {};
     d.card.alt = (d.tags.find(([k]) => k === "og:image:alt") || [])[1] || "";
     $("checks-block").hidden = false; $("pv-block").hidden = false;
@@ -486,6 +530,7 @@ async function run(url) {
     history.replaceState(null, "", "?url=" + encodeURIComponent(url));
   } catch (e) {
     $("err").textContent = e.message; $("err").hidden = false;
+    track("check_failed", { url, trigger, status: e.status || 0, error: e.message });
   } finally {
     $("go").disabled = false; $("go").textContent = "Check";
   }
@@ -493,10 +538,10 @@ async function run(url) {
 
 fetch("support.json").then((r) => r.json()).then((d) => { support = d; drawPlatforms(); })
   .catch(() => { $("plat").replaceChildren(el("tr", {}, [el("td", { colSpan: 4, textContent: "Support list unavailable." })])); });
-$("f").addEventListener("submit", (e) => { e.preventDefault(); run($("u").value.trim()); });
+$("f").addEventListener("submit", (e) => { e.preventDefault(); run($("u").value.trim(), "form"); });
 const q = new URLSearchParams(location.search).get("url");
 if (q) $("u").value = q;
-run($("u").value.trim());
+run($("u").value.trim(), q ? "link" : "default");
 </script>
 </body>
 </html>

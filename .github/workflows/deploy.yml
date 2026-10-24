@@ -1,0 +1,26 @@
+name: Deploy
+# Deploys checkmyog.com on every push to main once the tests pass.
+# Needs the FLY_API_TOKEN repository secret (a deploy token for the checkmyog app).
+# Forks don't have it, so the job is skipped there.
+on:
+  push:
+    branches: [main]
+concurrency: deploy
+jobs:
+  test:
+    uses: ./.github/workflows/test.yml
+  deploy:
+    needs: test
+    if: github.repository == 'twidtwid/checkmyog'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: superfly/flyctl-actions/setup-flyctl@master
+      - run: flyctl deploy --remote-only
+        env:
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+      - name: Verify live
+        run: |
+          sleep 5
+          curl -fsS https://checkmyog.com/healthz
+          curl -fsS https://checkmyog.com/ | grep -q "Check My OG"

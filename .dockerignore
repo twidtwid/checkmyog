@@ -1,0 +1,7 @@
+.git
+.github
+assets
+tests
+*.md
+__pycache__
+.venv

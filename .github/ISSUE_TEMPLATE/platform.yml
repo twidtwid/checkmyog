@@ -1,0 +1,47 @@
+name: Platform behavior
+description: An app previews links differently than Check My OG says
+title: "[platform] <app>: <what you saw>"
+labels: ["platform-data"]
+body:
+  - type: input
+    id: url
+    attributes:
+      label: URL you shared
+      description: Ideally a page with both og:video and og:image.
+    validations:
+      required: true
+  - type: input
+    id: app
+    attributes:
+      label: App, version, device and OS
+      placeholder: "Telegram 11.2, iPhone 16, iOS 26.1"
+    validations:
+      required: true
+  - type: textarea
+    id: saw
+    attributes:
+      label: What you saw
+      description: Did the video play, show a still, or show og:image? Attach a screenshot or screen recording if you can.
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: What Check My OG said
+      description: Paste the row from the "Who plays og:video" table, or the Markdown report.
+  - type: input
+    id: date
+    attributes:
+      label: Date tested
+      placeholder: "2026-10-24"
+    validations:
+      required: true
+  - type: input
+    id: source
+    attributes:
+      label: Documentation link, if the platform documents it
+  - type: dropdown
+    id: agent
+    attributes:
+      label: Filed by
+      options: ["A person", "An AI agent (name it below)"]

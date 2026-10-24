@@ -1,10 +1,13 @@
 #!/usr/bin/env python3
-"""OG Checker: fetch a page as a link-preview crawler would, check its Open
+"""Check My OG: fetch a page as a link-preview crawler would, check its Open
 Graph tags and its og:video and og:image files, and serve a page that previews
 the cards.
 
 GET /                    the checker page (public/index.html)
-GET /api/inspect?url=…   JSON: tags found, per-file checks, video probe
+GET /api/inspect?url=…   JSON (or Markdown with &format=md): tags, checks, verdicts
+GET /healthz             liveness for the host
+
+Standard library only, plus the ffprobe binary (from ffmpeg) for video facts.
 
 Fetching arbitrary URLs from a public page is an SSRF risk, so every hop
 (including redirects) resolves the host, refuses private/loopback/link-local/
@@ -12,8 +15,14 @@ reserved addresses, and connects to the checked IP itself (no second DNS
 lookup to rebind). http/https only, ports 80/443, size caps, a per-client
 rate limit.
 
-SIGTERM shuts down cleanly (exit 0), as sprite-env expects.
+Environment: PORT (default 8080), POSTHOG_KEY and POSTHOG_HOST (optional
+analytics; unset means none), PUBLIC_URL (the base URL written into the page,
+llms.txt and openapi.json; default https://checkmyog.com), CLIENT_IP_HEADER
+(the proxy header that carries the client IP; default Fly-Client-IP).
+
+SIGTERM shuts down cleanly (exit 0).
 """
+import hashlib
 import http.client
 import ipaddress
 import json
@@ -27,17 +36,24 @@ import subprocess
 import tempfile
 import threading
 import time
+import urllib.request
 from html.parser import HTMLParser
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from urllib.parse import parse_qs, urljoin, urlsplit
 
 ROOT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "public")
 PORT = int(os.environ.get("PORT", "8080"))
+PUBLIC_URL = os.environ.get("PUBLIC_URL", "https://checkmyog.com").rstrip("/")
+# Only trust a client-IP header your proxy sets (Fly sets Fly-Client-IP); empty = socket address.
+CLIENT_IP_HEADER = os.environ.get("CLIENT_IP_HEADER", "Fly-Client-IP")
+POSTHOG_KEY = os.environ.get("POSTHOG_KEY", "")
+POSTHOG_HOST = os.environ.get("POSTHOG_HOST", "https://us.i.posthog.com").rstrip("/")
 UA = {"x": "Twitterbot/1.0",
       "facebook": "facebookexternalhit/1.1 (+http://www.facebook.com/externalhit_uatext.php)"}
 HTML_CAP = 2 * 1024 * 1024
 VIDEO_CAP = 40 * 1024 * 1024
 TIMEOUT = 12
+ALLOWED_PORTS = (80, 443)
 RATE = (20, 60)            # requests per window seconds, per client IP
 _hits: dict[str, list[float]] = {}
 _lock = threading.Lock()
@@ -68,7 +84,7 @@ def fetch(url: str, ua: str, method: str = "GET", rng: str | None = None,
         if u.scheme not in ("http", "https") or not u.hostname:
             raise Refused("only http(s) URLs")
         port = u.port or (443 if u.scheme == "https" else 80)
-        if port not in (80, 443):
+        if port not in ALLOWED_PORTS:
             raise Refused("only ports 80 and 443")
         ip = _safe_ip(u.hostname, port)
         sock = socket.create_connection((ip, port), timeout=TIMEOUT)
@@ -317,6 +333,28 @@ def inspect(url: str) -> dict:
     return result
 
 
+def track(event: str, client: str, ua: str, props: dict) -> None:
+    """Send one server-side event to PostHog, in the background, never raising.
+    Covers API callers that never run the page's JavaScript. The distinct_id is
+    a daily hash of IP and user agent: counts visitors without storing either."""
+    if not POSTHOG_KEY:
+        return
+    day = time.strftime("%Y-%m-%d", time.gmtime())
+    who = hashlib.sha256(f"{day}|{client}|{ua}".encode()).hexdigest()[:24]
+    body = json.dumps({"api_key": POSTHOG_KEY, "event": event, "distinct_id": who,
+                       "properties": {**props, "$ip": client, "$raw_user_agent": ua,
+                                      "$process_person_profile": False, "$lib": "checkmyog-server"}}).encode()
+
+    def send():
+        try:
+            req = urllib.request.Request(f"{POSTHOG_HOST}/i/v0/e/", data=body,
+                                         headers={"Content-Type": "application/json"})
+            urllib.request.urlopen(req, timeout=5).close()
+        except Exception:      # noqa: BLE001 — analytics must never break a check
+            pass
+    threading.Thread(target=send, daemon=True).start()
+
+
 def load_support() -> dict:
     try:
         with open(os.path.join(ROOT, "support.json"), encoding="utf-8") as f:
@@ -361,7 +399,7 @@ def verdicts(r: dict) -> dict:
 
 def to_markdown(r: dict) -> str:
     c, sm, v, p = r["card"], r["summary"], r.get("video") or {}, r.get("poster") or {}
-    out = [f"# OG Checker: {r['final_url']}", ""]
+    out = [f"# Check My OG: {r['final_url']}", ""]
     out.append(f"- Video plays in: {', '.join(sm['video_plays_in']) or 'none'}")
     out.append(f"- Everywhere else: {'og:image poster' if sm['everywhere_else'] == 'poster' else 'text-only card (no og:image)'}")
     out.append(f"- Checks: {sm['checks_passed']} passed, {len(sm['checks_failed'])} failed")
@@ -399,6 +437,19 @@ class Handler(SimpleHTTPRequestHandler):
                       ".txt": "text/plain; charset=utf-8", ".md": "text/markdown; charset=utf-8",
                       ".json": "application/json"}
 
+    # Files served with {{PUBLIC_URL}}, {{POSTHOG_KEY}} and {{POSTHOG_HOST}} filled in.
+    TEMPLATES = {"/": ("index.html", "text/html; charset=utf-8"),
+                 "/index.html": ("index.html", "text/html; charset=utf-8"),
+                 "/llms.txt": ("llms.txt", "text/plain; charset=utf-8"),
+                 "/openapi.json": ("openapi.json", "application/json")}
+
+    def _template(self, name, ctype):
+        with open(os.path.join(ROOT, name), encoding="utf-8") as f:
+            text = f.read()
+        for k, v in (("PUBLIC_URL", PUBLIC_URL), ("POSTHOG_KEY", POSTHOG_KEY), ("POSTHOG_HOST", POSTHOG_HOST)):
+            text = text.replace("{{" + k + "}}", v)
+        self._text(200, text, ctype)
+
     def end_headers(self):
         self.send_header("Cache-Control", "no-cache")
         # Agents and other sites may call the API and read llms.txt from a browser.
@@ -429,30 +480,50 @@ class Handler(SimpleHTTPRequestHandler):
 
     def do_GET(self):
         u = urlsplit(self.path)
+        if u.path == "/healthz":
+            return self._text(200, "ok\n", "text/plain; charset=utf-8")
         if u.path in ("/api", "/api/"):
-            return self._text(200, open(os.path.join(ROOT, "llms.txt"), encoding="utf-8").read())
+            return self._template("llms.txt", "text/markdown; charset=utf-8")
+        if u.path in self.TEMPLATES:
+            return self._template(*self.TEMPLATES[u.path])
         if u.path not in ("/api/inspect", "/api/check"):
             return super().do_GET()
-        client = self.headers.get("Fly-Client-IP") or self.client_address[0]
+        client = (CLIENT_IP_HEADER and self.headers.get(CLIENT_IP_HEADER)) or self.client_address[0]
         now = time.time()
         with _lock:
             hits = [t for t in _hits.get(client, []) if now - t < RATE[1]]
             if len(hits) >= RATE[0]:
                 return self._json(429, {"error": "Too many checks; wait a minute."})
             _hits[client] = hits + [now]
+            if len(_hits) > 10_000:      # forget idle clients so the dict can't grow forever
+                for k in [k for k, v in _hits.items() if now - v[-1] >= RATE[1]]:
+                    del _hits[k]
         qs = parse_qs(u.query)
         url = (qs.get("url") or [""])[0].strip()
         md = (qs.get("format") or [""])[0] in ("md", "markdown", "text") or \
             "text/markdown" in (self.headers.get("Accept") or "")
         if not url:
             return self._json(400, {"error": "Give a URL: /api/inspect?url=https://example.com/"})
+        ua = self.headers.get("User-Agent") or ""
+        props = {"url": url, "domain": urlsplit(url if "://" in url else "https://" + url).hostname,
+                 "format": "md" if md else "json",
+                 "via": "web" if self.headers.get("X-Checkmyog-Client") == "web" else "api"}
+        t0 = time.monotonic()
         try:
             r = inspect(url)
             self._text(200, to_markdown(r)) if md else self._json(200, r)
+            sm = r["summary"]
+            props.update(status=200, final_url=r["final_url"], video_plays_in=sm["video_plays_in"],
+                         checks_passed=sm["checks_passed"], checks_failed=len(sm["checks_failed"]),
+                         has_video=bool(r["card"]["video"]), has_image=bool(r["card"]["image"]))
         except Refused as e:
             self._json(400, {"error": str(e)})
+            props.update(status=400, error=str(e))
         except Exception as e:      # noqa: BLE001
             self._json(502, {"error": f"Fetch failed: {type(e).__name__}: {e}"})
+            props.update(status=502, error=type(e).__name__)
+        props["duration_ms"] = round((time.monotonic() - t0) * 1000)
+        track("check_served", client, ua, props)
 
 
 if __name__ == "__main__":
