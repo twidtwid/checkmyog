@@ -1,0 +1,47 @@
+{
+  "openapi": "3.1.0",
+  "info": {"title": "OG Checker", "version": "1.0.0",
+    "description": "Check a page's Open Graph link preview as crawlers see it, including og:video playback support per app. See /llms.txt."},
+  "servers": [{"url": "https://ogchecker-bq3fs.sprites.app"}],
+  "paths": {
+    "/api/inspect": {
+      "get": {
+        "operationId": "inspectUrl",
+        "summary": "Check a URL's link preview tags and files",
+        "parameters": [
+          {"name": "url", "in": "query", "required": true, "schema": {"type": "string", "format": "uri"}, "description": "Page to check (http or https)."},
+          {"name": "format", "in": "query", "required": false, "schema": {"type": "string", "enum": ["json", "md"]}, "description": "md returns a Markdown report."}
+        ],
+        "responses": {
+          "200": {"description": "Report", "content": {
+            "application/json": {"schema": {"$ref": "#/components/schemas/Report"}},
+            "text/markdown": {"schema": {"type": "string"}}}},
+          "400": {"description": "Bad or refused URL", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}},
+          "429": {"description": "Rate limited (20 per minute per IP)", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}},
+          "502": {"description": "Target failed to answer", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}}
+        }
+      }
+    }
+  },
+  "components": {"schemas": {
+    "Error": {"type": "object", "properties": {"error": {"type": "string"}}},
+    "Check": {"type": "object", "properties": {
+      "ok": {"type": "boolean"}, "group": {"type": "string", "enum": ["page", "tags", "video", "platform", "poster", "other"]},
+      "key": {"type": "string"}, "label": {"type": "string"}, "detail": {"type": "string"}}},
+    "Platform": {"type": "object", "properties": {
+      "platform": {"type": "string"}, "result": {"type": "string", "enum": ["plays", "poster", "none"]},
+      "note": {"type": "string"}, "source": {"type": "string"}}},
+    "Report": {"type": "object", "properties": {
+      "url": {"type": "string"}, "final_url": {"type": "string"},
+      "summary": {"type": "object", "properties": {
+        "video_plays_in": {"type": "array", "items": {"type": "string"}},
+        "everywhere_else": {"type": "string", "enum": ["poster", "none"]},
+        "checks_passed": {"type": "integer"},
+        "checks_failed": {"type": "array", "items": {"type": "string"}}}},
+      "platforms": {"type": "array", "items": {"$ref": "#/components/schemas/Platform"}},
+      "checks": {"type": "array", "items": {"$ref": "#/components/schemas/Check"}},
+      "card": {"type": "object"}, "video": {"type": "object"}, "poster": {"type": "object"},
+      "tags": {"type": "array", "items": {"type": "array", "items": {"type": "string"}, "minItems": 2, "maxItems": 2}},
+      "support_as_of": {"type": "string"}, "untested_platforms": {"type": "array", "items": {"type": "string"}}}}
+  }}
+}

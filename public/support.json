@@ -1,0 +1,104 @@
+{
+ "as_of": "24 Oct 2026",
+ "note": "From docs, developer reports and device tests.",
+ "platforms": [
+  {
+   "platform": "iMessage",
+   "status": "plays",
+   "note": "Autoplays the MP4, looping; 10 MB cap. With autoplay off or Reduce Motion: poster with a play button. Tested 24 Oct.",
+   "source": "https://developer.apple.com/documentation/technotes/tn3156-create-rich-previews-for-messages",
+   "source_date": "2024-04"
+  },
+  {
+   "platform": "Discord",
+   "status": "poster",
+   "note": "Still image for normal pages. Plays only if the page claims og:type video.*.",
+   "source": "https://docs.discord.com/developers/link-previews/overview",
+   "source_date": "n.d."
+  },
+  {
+   "platform": "Telegram",
+   "status": "poster",
+   "note": "Shows og:image. Tested 24 Oct; FxEmbed's claim that it plays did not hold.",
+   "source": "https://docs.fxembed.com/guide/getting-started/",
+   "source_date": "2026-09"
+  },
+  {
+   "platform": "X (Twitter)",
+   "status": "poster",
+   "note": "Link cards show og:image. The viral og:video posts were iMessage screen recordings.",
+   "source": "https://x.com/pfista/status/2113599976714743874",
+   "source_date": "2026-10"
+  },
+  {
+   "platform": "WhatsApp",
+   "status": "poster",
+   "note": "Uses og:image as the thumbnail; og:video not mentioned.",
+   "source": "https://developers.facebook.com/documentation/business-messaging/whatsapp/link-previews",
+   "source_date": "n.d."
+  },
+  {
+   "platform": "Slack",
+   "status": "poster",
+   "note": "Unfurls show og:image; video needs an app unfurl.",
+   "source": "https://github.com/slackapi/python-slack-sdk/issues/1811",
+   "source_date": "2025"
+  },
+  {
+   "platform": "Bluesky",
+   "status": "poster",
+   "note": "Link cards are thumbnail only; players for a few named sites.",
+   "source": "https://github.com/bluesky-social/social-app/issues/1289",
+   "source_date": "2023-12"
+  },
+  {
+   "platform": "Mastodon",
+   "status": "poster",
+   "note": "Video cards come from oEmbed, not og:video.",
+   "source": "https://docs.joinmastodon.org/entities/PreviewCard/",
+   "source_date": "n.d."
+  },
+  {
+   "platform": "Signal",
+   "status": "poster",
+   "note": "Title and image only.",
+   "source": "https://support.signal.org/hc/en-us/articles/360022474332-Link-Previews",
+   "source_date": "n.d."
+  },
+  {
+   "platform": "LinkedIn",
+   "status": "poster",
+   "note": "Reads og:image, title, description; no video seen.",
+   "source": "https://www.linkedin.com/post-inspector/",
+   "source_date": "n.d."
+  },
+  {
+   "platform": "Matrix / Element",
+   "status": "poster",
+   "note": "Preview API returns images only.",
+   "source": "https://github.com/matrix-construct/tuwunel/issues/394",
+   "source_date": "2026"
+  },
+  {
+   "platform": "Facebook",
+   "status": "poster",
+   "note": "Shows og:image. Tested 24 Oct; docs say an MP4 is only 'eligible' for inline play.",
+   "source": "https://developers.facebook.com/documentation/sharing/webmasters",
+   "source_date": "n.d."
+  }
+ ],
+ "untested": [
+  "Messenger",
+  "Instagram DMs",
+  "Threads",
+  "Reddit",
+  "Teams",
+  "Google Chat",
+  "Pinterest",
+  "Tumblr",
+  "Snapchat",
+  "WeChat",
+  "Line",
+  "Viber"
+ ]
+}

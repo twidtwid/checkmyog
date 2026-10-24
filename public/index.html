@@ -1,0 +1,502 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>OG Checker</title>
+<link rel="alternate" type="text/markdown" title="LLM instructions" href="/llms.txt">
+<link rel="service-desc" type="application/json" href="/openapi.json">
+<meta name="description" content="Check a page's Open Graph link preview as crawlers see it: tags, og:image, og:video, file encoding, fallback, and what each app will show.">
+<style>
+:root {
+  --bg: #ffffff; --bg2: #f6f7f9; --fg: #1b1d21; --muted: #5f6672; --faint: #8a909b; --line: #e3e6ea; --line2: #d3d7dd;
+  --ok: #17803d; --bad: #c4291c; --warn: #a15c00; --bad-row: #fdf1ef; --hover: #eef3fb; --bad-hover: #fbe3df; --accent: #1f5fd1;
+  --sans: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #15171a; --bg2: #1c1f23; --fg: #e6e8eb; --muted: #a2a8b2; --faint: #7b818b; --line: #2a2e34; --line2: #363b42;
+  --ok: #5ccf86; --bad: #ff7b6b; --warn: #e6a64a; --bad-row: #2a1a18; --hover: #20262f; --bad-hover: #34201d; --accent: #7aa5ff; color-scheme: dark } }
+:root[data-theme="dark"] {
+  --bg: #15171a; --bg2: #1c1f23; --fg: #e6e8eb; --muted: #a2a8b2; --faint: #7b818b; --line: #2a2e34; --line2: #363b42;
+  --ok: #5ccf86; --bad: #ff7b6b; --warn: #e6a64a; --bad-row: #2a1a18; --hover: #20262f; --bad-hover: #34201d; --accent: #7aa5ff; color-scheme: dark }
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--fg); font: 13px/1.45 var(--sans); }
+a { color: var(--accent); }
+
+/* Top bar: tool name, URL, run. */
+.bar { position: sticky; top: 0; z-index: 2; background: var(--bg); border-bottom: 1px solid var(--line); }
+.bar-in { max-width: 1440px; margin: 0 auto; padding: 10px 16px; display: flex; gap: 10px; align-items: center; }
+.bar h1 { font-size: 14px; margin: 0; white-space: nowrap; }
+.bar form { flex: 1; display: flex; gap: 6px; min-width: 0; }
+.bar input { flex: 1; min-width: 0; font: 13px var(--mono); padding: 6px 8px; border: 1px solid var(--line2); border-radius: 4px; background: var(--bg); color: var(--fg); }
+.bar button, .seg button { font: 600 13px var(--sans); padding: 6px 14px; border-radius: 4px; border: 1px solid var(--accent); background: var(--accent); color: #fff; cursor: pointer; }
+.bar button:disabled { opacity: .6; cursor: progress; }
+.bar .meta { color: var(--faint); white-space: nowrap; font-size: 12px; }
+.bar .specs { white-space: nowrap; font-size: 12px; color: var(--faint); }
+.bar .specs a { color: var(--muted); }
+@media (max-width: 700px) { .bar .specs { order: 4; } }
+input:focus-visible, button:focus-visible, a:focus-visible, summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+@media (max-width: 700px) { .bar-in { flex-wrap: wrap; } .bar form { flex-basis: 100%; order: 3; } }
+
+.page { max-width: 1440px; margin: 0 auto; padding: 12px 16px 48px; }
+.verdict { display: flex; flex-wrap: wrap; gap: 4px 18px; padding: 8px 10px; background: var(--bg2); border: 1px solid var(--line); border-radius: 4px; margin-bottom: 12px; }
+.verdict b { font-weight: 600; }
+.err { border: 1px solid var(--bad); color: var(--bad); padding: 8px 10px; border-radius: 4px; margin-bottom: 12px; }
+.cols { display: grid; grid-template-columns: minmax(0, 1fr) 480px; gap: 16px; align-items: start; }
+@media (max-width: 1000px) { .cols { grid-template-columns: 1fr; } }
+
+h2 { font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); margin: 0 0 6px; }
+.block { margin-bottom: 18px; }
+.block > .head { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+.block > .head .aside { color: var(--faint); font-size: 12px; }
+
+/* Dense tables. */
+table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+th, td { text-align: left; padding: 4px 8px; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { font-weight: 600; color: var(--muted); font-size: 12px; background: var(--bg2); border-top: 1px solid var(--line); white-space: nowrap; }
+td.val { font-family: var(--mono); font-size: 12px; color: var(--muted); overflow-wrap: anywhere; }
+tr.grp td { background: var(--bg2); color: var(--muted); font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .04em; padding-top: 6px; }
+tr.fail td { background: var(--bad-row); }
+tr.fail td.val { color: var(--fg); }
+/* Row hover: a faint tint to follow a line across wide tables. */
+tbody tr:not(.grp):hover td { background: var(--hover); }
+tbody tr.fail:hover td { background: var(--bad-hover); }
+.st { font-weight: 700; font-size: 11px; letter-spacing: .03em; }
+.st.ok, .st.yes { color: var(--ok); } .st.bad { color: var(--bad); } .st.wait { color: var(--faint); } .st.no { color: var(--warn); }
+.kv td { font-family: var(--mono); font-size: 12px; overflow-wrap: anywhere; }
+.kv td:first-child { width: 30%; color: var(--muted); font-family: var(--sans); }
+
+/* Platform table. */
+.plat th:first-child, .plat td:first-child { font-weight: 600; width: 104px; }
+.plat th:nth-child(2), .plat td.res { width: 70px; }
+.plat td.res { font-weight: 700; font-size: 11px; letter-spacing: .03em; }
+.res.plays { color: var(--ok); } .res.poster { color: var(--muted); } .res.still { color: var(--warn); } .res.unknown { color: var(--faint); } .res.none { color: var(--bad); }
+.plat td.note { color: var(--muted); font-size: 12px; }
+.plat th:last-child, .plat td.src { width: 52px; text-align: right; font-size: 12px; }
+.foot { color: var(--faint); font-size: 12px; margin: 6px 0 0; }
+
+/* Previews. */
+.seg { display: inline-flex; margin-bottom: 8px; }
+.seg button { background: var(--bg); color: var(--fg); border-color: var(--line2); font-weight: 500; padding: 4px 10px; border-radius: 0; }
+.seg button:first-child { border-radius: 4px 0 0 4px; } .seg button:last-child { border-radius: 0 4px 4px 0; } .seg button + button { border-left: 0; }
+.seg button[aria-pressed="true"] { background: var(--fg); color: var(--bg); border-color: var(--fg); }
+.pv { margin-bottom: 12px; }
+.pv .lab { font-size: 12px; color: var(--muted); margin-bottom: 4px; display: flex; justify-content: space-between; gap: 8px; }
+.pv .lab b { color: var(--fg); font-weight: 600; }
+.media { position: relative; aspect-ratio: 1200 / 630; background: var(--bg2); overflow: hidden; }
+.media video, .media img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.media .empty { position: absolute; inset: 0; display: grid; place-items: center; color: var(--faint); }
+.xcard { border: 1px solid var(--line2); border-radius: 14px; overflow: hidden; }
+.xcard .domain { position: absolute; left: 10px; bottom: 10px; background: rgba(0,0,0,.77); color: #fff; font-size: 12px; padding: 0 5px; border-radius: 4px; }
+.dcard { border-left: 4px solid var(--line2); background: var(--bg2); border-radius: 4px; padding: 8px 12px 12px; }
+.dcard .t { color: var(--accent); font-weight: 600; margin: 2px 0; }
+.dcard .site, .dcard .d { font-size: 12px; color: var(--muted); }
+.dcard .media { margin-top: 8px; border-radius: 4px; }
+.bubble { --im-bar: #e9e9eb; --im-fg: #000; --im-muted: #6b6b70; }
+.bubble .media { border-radius: 16px 16px 0 0; background: transparent; }
+.bubble .bot { background: var(--im-bar); border-radius: 0 0 16px 16px; padding: 8px 12px; display: grid; grid-template-columns: 1fr auto; align-items: center; column-gap: 8px; }
+.bubble .t { font-weight: 600; font-size: 13px; color: var(--im-fg); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.bubble .d { color: var(--im-muted); font-size: 12px; grid-column: 1; }
+.bubble .chev { grid-column: 2; grid-row: 1 / span 2; color: #0a7aff; font-size: 18px; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .bubble { --im-bar: #3a3a3c; --im-fg: #fff; --im-muted: #aeaeb2; } }
+:root[data-theme="dark"] .bubble { --im-bar: #3a3a3c; --im-fg: #fff; --im-muted: #aeaeb2; }
+.fbcard { border: 1px solid var(--line2); }
+.fbcard .bot { padding: 8px 10px; background: var(--bg2); }
+.fbcard .d { color: var(--muted); font-size: 11px; text-transform: uppercase; }
+.fbcard .t { font-weight: 600; }
+details > summary { cursor: pointer; color: var(--muted); font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: .04em; margin-bottom: 6px; }
+.hero { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 0 0 12px; }
+@media (max-width: 800px) { .hero { grid-template-columns: 1fr; } }
+.pane { margin: 0; min-width: 0; }
+.pane figcaption { display: flex; gap: 10px; align-items: baseline; margin-bottom: 6px; font-size: 12px; color: var(--muted); }
+.pane figcaption b { font: 600 14px var(--mono); color: var(--fg); }
+.pane figcaption .ok { color: var(--ok); font-weight: 600; } .pane figcaption .note { color: var(--warn); } .pane figcaption .bad { color: var(--bad); font-weight: 600; }
+.stage { aspect-ratio: 1200 / 630; background: var(--bg2); border: 1px solid var(--line2); border-radius: 6px; overflow: hidden; position: relative; }
+.stage video, .stage img { width: 100%; height: 100%; object-fit: contain; display: block; background: #000; }
+.stage img { background: var(--bg2); }
+.stage .empty { position: absolute; inset: 0; display: grid; place-items: center; color: var(--faint); font-size: 14px; }
+.facts { font: 12px var(--mono); color: var(--muted); margin-top: 6px; overflow-wrap: anywhere; }
+.facts a { color: var(--muted); }
+.pvs { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; align-items: start; }
+@media (max-width: 1100px) { .pvs { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 560px) { .pvs { grid-template-columns: 1fr; } }
+.block > .head .seg { margin: 0; }
+.intro { color: var(--faint); font-size: 12px; margin: 8px 0 0; max-width: 110ch; }
+.intro code { font: 12px var(--mono); color: var(--muted); overflow-wrap: anywhere; }
+.intro b { color: var(--muted); }
+/* iMessage with autoplay off or Reduce Motion: the poster with a round play button. */
+.playbtn { position: absolute; left: 50%; top: 50%; width: 64px; height: 64px; margin: -32px 0 0 -32px; border-radius: 50%; border: 0;
+  background: rgba(214, 214, 214, .88); cursor: pointer; display: grid; place-items: center; padding: 0; }
+.playbtn::before { content: ""; margin-left: 5px; border-style: solid; border-width: 13px 0 13px 21px; border-color: transparent transparent transparent #111; }
+.stage video { cursor: pointer; }
+@media (max-width: 560px) {
+  .block > .head { flex-wrap: wrap; }
+  .seg { width: 100%; }
+  .seg button { flex: 1; white-space: nowrap; padding: 6px 4px; font-size: 12px; }
+  /* Checks: status + check on one line, the value under the check. */
+  #checks-block table, #checks-block tbody, .plat, .plat tbody { display: block; width: 100%; }
+  #checks-block colgroup, #checks-block thead { display: none; }
+  #checks tr:not(.grp) { display: grid; grid-template-columns: 44px minmax(0, 1fr); border-bottom: 1px solid var(--line); }
+  #checks tr:not(.grp) td { border-bottom: 0; }
+  #checks td.val { grid-column: 2; padding-top: 0; }
+  #checks tr.grp, #checks tr.grp td { display: block; width: 100%; }
+  /* Platforms: app, result, source on one line; the note under them. */
+  .plat thead { display: none; }
+  .plat tr { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; column-gap: 10px; border-bottom: 1px solid var(--line); }
+  .plat td { border-bottom: 0; width: auto !important; }
+  .plat td.note { grid-column: 1 / -1; grid-row: 2; padding-top: 0; }
+  .kv td:first-child { width: 38%; }
+}
+[hidden] { display: none !important; }
+</style>
+</head>
+<body>
+<header class="bar"><div class="bar-in">
+  <h1>OG Checker</h1>
+  <form id="f">
+    <label for="u" hidden>Page URL</label>
+    <input id="u" name="url" type="url" inputmode="url" spellcheck="false" placeholder="https://example.com/" value="https://spalterdigital.com/" required>
+    <button id="go" type="submit">Check</button>
+  </form>
+  <span class="meta" id="meta"></span>
+  <nav class="specs" aria-label="Specs"><a href="https://ogp.me/" target="_blank" rel="noopener">Open Graph spec</a> · <a href="https://ogp.me/#structured" target="_blank" rel="noopener">og:video</a> · <a href="/llms.txt">llms.txt</a></nav>
+</div></header>
+
+<main class="page">
+  <div id="err" class="err" role="alert" hidden></div>
+  <section class="hero" id="hero" hidden>
+    <figure class="pane">
+      <figcaption><b>og:video</b><span id="hero-v-res"></span></figcaption>
+      <div class="stage" id="hero-v-box"></div>
+      <div class="facts" id="hero-vf"></div>
+    </figure>
+    <figure class="pane">
+      <figcaption><b>og:image</b><span>The poster: every other app, and the fallback when video can't play</span></figcaption>
+      <div class="stage" id="hero-i-box"></div>
+      <div class="facts" id="hero-if"></div>
+    </figure>
+  </section>
+  <div id="verdict" class="verdict" hidden></div>
+
+  <section class="block" id="pv-block" hidden>
+    <div class="head"><h2>In each app</h2>
+      <div class="seg" role="group" aria-label="Preview mode">
+        <button type="button" id="m-video" aria-pressed="true">Video plays</button>
+        <button type="button" id="m-paused" aria-pressed="false" title="Recipient has autoplay off or Reduce Motion on">Autoplay off</button>
+        <button type="button" id="m-fallback" aria-pressed="false">Video unsupported</button>
+      </div>
+    </div>
+    <div class="pvs">
+      <div class="pv"><div class="lab"><b>iMessage</b><span id="i-lab"></span></div>
+        <div class="bubble"><div class="media" id="i-media"></div><div class="bot"><div class="t" id="i-t"></div><span class="chev" aria-hidden="true">›</span><div class="d" id="i-d"></div></div></div></div>
+      <div class="pv"><div class="lab"><b>Discord</b><span id="d-lab"></span></div>
+        <div class="dcard"><div class="site" id="d-site"></div><div class="t" id="d-t"></div><div class="d" id="d-d"></div><div class="media" id="d-media"></div></div></div>
+      <div class="pv"><div class="lab"><b>X (Twitter)</b><span>og:image</span></div>
+        <div class="xcard"><div class="media" id="x-media"><span class="domain" id="x-domain"></span></div></div></div>
+      <div class="pv"><div class="lab"><b>Facebook, LinkedIn, Slack, WhatsApp</b><span>og:image</span></div>
+        <div class="fbcard"><div class="media" id="f-media"></div><div class="bot"><div class="d" id="f-domain"></div><div class="t" id="f-t"></div></div></div></div>
+    </div>
+  </section>
+
+  <div class="cols">
+    <div>
+      <section class="block" id="checks-block" hidden>
+        <div class="head"><h2>Checks</h2><span class="aside" id="checks-sum"></span></div>
+        <table>
+          <colgroup><col style="width:52px"><col style="width:40%"><col></colgroup>
+          <thead><tr><th>Status</th><th>Check</th><th>Value</th></tr></thead>
+          <tbody id="checks"></tbody>
+        </table>
+      </section>
+      <section class="block" id="tags-block" hidden>
+        <div class="head"><h2>Tags the crawler saw</h2><span class="aside"><span id="tags-n"></span> tags</span></div>
+        <table class="kv"><tbody id="tags"></tbody></table>
+      </section>
+    </div>
+    <div>
+      <section class="block">
+        <div class="head"><h2>Who plays og:video</h2><span class="aside" id="asof"></span></div>
+        <table class="plat">
+          <thead><tr><th>App</th><th title="What this URL gets in that app">This URL</th><th>Notes</th><th></th></tr></thead>
+          <tbody id="plat"><tr><td colspan="4" class="note">Loading…</td></tr></tbody>
+        </table>
+        <p class="foot" id="untested"></p>
+      </section>
+    </div>
+  </div>
+  <p class="intro" id="agents"><b>For agents and scripts:</b> <code>curl "https://ogchecker-bq3fs.sprites.app/api/inspect?url=https://example.com/&amp;format=md"</code> returns a Markdown report; drop <code>&amp;format=md</code> for JSON. Instructions: <a href="/llms.txt">llms.txt</a> · <a href="/openapi.json">OpenAPI</a>. Specs: <a href="https://ogp.me/">Open Graph protocol</a> · <a href="https://developer.apple.com/documentation/technotes/tn3156-create-rich-previews-for-messages">Apple TN3156 (Messages previews)</a> · <a href="https://docs.discord.com/developers/link-previews/overview">Discord link previews</a>. No key; 20 checks a minute.</p>
+  <p class="intro">Fetches the page as Twitterbot and facebookexternalhit, then fetches and probes the og:video and og:image files on the server. The "This browser" checks and every player on this page run in your browser. App previews follow each app's layout and are approximate.</p>
+</main>
+
+<script>
+const $ = (id) => document.getElementById(id);
+const el = (tag, props = {}, kids = []) => { const n = Object.assign(document.createElement(tag), props); n.append(...kids.filter((k) => k !== null && k !== undefined && k !== "")); return n; };
+const GROUP_NAMES = { page: "Page", tags: "Tags", video: "Video file", platform: "Platform rules", poster: "Poster (fallback)", browser: "This browser", other: "Other" };
+let support = null, current = null, mode = "video", browser = {};
+
+// ---------- media + previews ----------
+// Safari only autoplays a video that is muted before it gets a source: set the
+// attributes and defaultMuted first, attach the src last, then call play()
+// (a rejected play() just leaves the poster and the controls).
+function autoVideo(src, posterUrl, controls, onBlocked) {
+  const v = document.createElement("video");
+  for (const a of ["muted", "autoplay", "loop", "playsinline"]) v.setAttribute(a, "");
+  if (controls) v.setAttribute("controls", "");
+  v.muted = true; v.defaultMuted = true; v.playsInline = true;
+  if (posterUrl) v.poster = posterUrl;
+  v.src = src;
+  // play() is tried twice (now and at loadedmetadata). Report "blocked" only if
+  // a refusal leaves the video paused: an early refusal followed by playback
+  // is not a blocked autoplay.
+  const kick = () => { const p = v.play(); if (p) p.catch((e) => {
+    if (e.name === "NotAllowedError" && onBlocked) setTimeout(() => { if (v.paused) onBlocked(v); }, 600);
+  }); };
+  v.addEventListener("loadedmetadata", kick, { once: true });
+  queueMicrotask(kick);
+  return v;
+}
+
+function poster(card) {
+  return card.image ? el("img", { src: card.image, alt: card.alt || "" }) : el("div", { className: "empty", textContent: "No og:image" });
+}
+// playVideo: false (poster), true (autoplay), or "button" (iMessage with
+// autoplay off: the poster with a play button that starts the video).
+// An autoplay the browser refuses also falls back to the button.
+function media(box, card, playVideo, videoSrc) {
+  box.querySelectorAll("video,img,.empty,.playbtn").forEach((n) => n.remove());
+  if (!(playVideo && card.video)) { box.prepend(poster(card)); return null; }
+  const button = () => {
+    if (box.querySelector(".playbtn")) return;
+    const b = el("button", { type: "button", className: "playbtn", ariaLabel: "Play video" });
+    b.onclick = () => { b.remove(); const vid = box.querySelector("video"); vid.setAttribute("controls", ""); vid.play().catch(() => {}); };
+    box.append(b);
+  };
+  let v;
+  if (playVideo === "button") {
+    v = document.createElement("video");
+    for (const a of ["muted", "loop", "playsinline"]) v.setAttribute(a, "");
+    v.muted = true; v.preload = "metadata";
+    if (card.image) v.poster = card.image;
+    v.src = videoSrc || card.video;
+    button();
+  } else {
+    v = autoVideo(videoSrc || card.video, card.image, false, button);
+    v.addEventListener("playing", () => box.querySelector(".playbtn")?.remove());
+  }
+  v.addEventListener("error", () => { v.replaceWith(poster(card)); box.querySelector(".playbtn")?.remove(); }, { once: true });
+  box.prepend(v);
+  return v;
+}
+function drawPreviews() {
+  const c = current.card, v = verdicts();
+  media($("i-media"), c, v.imessage !== "plays" || mode === "fallback" ? false : mode === "paused" ? "button" : true);
+  media($("d-media"), c, mode === "video" && v.discord === "plays");
+  media($("x-media"), c, false);
+  media($("f-media"), c, false);
+  const lab = (k) => mode === "fallback" ? "og:image (forced)" : v[k] !== "plays" ? "og:image"
+    : mode === "paused" ? (k === "imessage" ? "og:video, tap to play" : "og:video") : "og:video";
+  $("i-lab").textContent = lab("imessage"); $("d-lab").textContent = lab("discord");
+}
+function setMode(m) {
+  mode = m;
+  $("m-video").setAttribute("aria-pressed", String(m === "video"));
+  $("m-fallback").setAttribute("aria-pressed", String(m === "fallback"));
+  $("m-paused").setAttribute("aria-pressed", String(m === "paused"));
+  if (current) drawPreviews();
+}
+$("m-video").onclick = () => setMode("video");
+$("m-fallback").onclick = () => setMode("fallback");
+$("m-paused").onclick = () => setMode("paused");
+
+// ---------- verdicts ----------
+function ok(key) { return (current.checks.find((x) => x.key === key) || {}).ok; }
+function verdicts() {
+  const d = current, c = d.card;
+  const videoOk = !!c.video && d.checks.filter((x) => x.group === "video" || ["video", "https", "vtype"].includes(x.key)).every((x) => x.ok);
+  const posterOr = c.image ? "poster" : "none";
+  return {
+    imessage: videoOk && ok("imsize") ? "plays" : posterOr,
+    discord: videoOk && ok("discord") ? "plays" : posterOr,
+    _poster: posterOr,
+  };
+}
+const RES_TEXT = { plays: "PLAYS", poster: "POSTER", still: "STILL", unknown: "MAYBE", none: "NONE" };
+const RES_TIP = { plays: "Plays the og:video", poster: "Shows og:image", still: "Shows og:image; this page doesn't meet the app's rule for playing video", unknown: "Not documented", none: "No og:image: text-only card" };
+
+function drawPlatforms() {
+  if (!support) return;
+  $("asof").textContent = `Support as of ${support.as_of}`;
+  const v = current ? verdicts() : null;
+  const keyOf = (name) => ({ "iMessage": "imessage", "Discord": "discord" })[name];
+  const order = { plays: 0, poster: 1, unclear: 2 };
+  const rows = [...support.platforms].sort((a, b) => order[a.status] - order[b.status]);
+  $("plat").replaceChildren(...rows.map((p) => {
+    const k = keyOf(p.platform);
+    const res = v ? (k ? v[k] : v._poster) : (p.status === "plays" ? "plays" : p.status === "poster" ? "poster" : "unknown");
+    return el("tr", {}, [
+      el("td", { textContent: p.platform }),
+      el("td", { className: "res " + res, textContent: RES_TEXT[res], title: RES_TIP[res] }),
+      el("td", { className: "note", textContent: p.note }),
+      el("td", { className: "src" }, [p.source ? el("a", { href: p.source, target: "_blank", rel: "noopener", textContent: "source", title: p.source_date && p.source_date !== "n.d." ? `Source dated ${p.source_date}` : "Source, undated" }) : null]),
+    ]);
+  }));
+  $("untested").textContent = support.untested?.length ? `No evidence either way: ${support.untested.join(", ")}.` : "";
+}
+
+// ---------- checks ----------
+function drawChecks() {
+  const all = [...current.checks, ...Object.values(browser)];
+  const groups = ["page", "tags", "video", "platform", "poster", "browser", "other"];
+  const rows = [];
+  for (const g of groups) {
+    const items = all.filter((x) => x.group === g);
+    if (!items.length) continue;
+    const bad = g === "platform" ? 0 : items.filter((x) => x.ok === false).length;
+    rows.push(el("tr", { className: "grp" }, [el("td", { colSpan: 3, textContent: `${GROUP_NAMES[g]}${bad ? ` · ${bad} failed` : ""}` })]));
+    for (const x of items) {
+      // Platform rules are facts about this page, not errors: YES/NO.
+      const rule = g === "platform";
+      const st = x.ok === null ? "wait" : rule ? (x.ok ? "yes" : "no") : x.ok ? "ok" : "bad";
+      const stripped = x.label.startsWith("Fallback: ");
+      const label = stripped ? x.label[10].toUpperCase() + x.label.slice(11) : x.label;
+      rows.push(el("tr", { className: st === "bad" ? "fail" : "" }, [
+        el("td", { className: "st " + st, textContent: { wait: "…", ok: "PASS", bad: "FAIL", yes: "YES", no: "NO" }[st] }),
+        el("td", { textContent: label }),
+        el("td", { className: "val", textContent: x.detail || "" }),
+      ]));
+    }
+  }
+  $("checks").replaceChildren(...rows);
+  const scored = all.filter((x) => x.group !== "platform");
+  const done = scored.filter((x) => x.ok !== null), bad = done.filter((x) => !x.ok).length;
+  $("checks-sum").textContent = `${done.length - bad} of ${scored.length} pass${bad ? ` · ${bad} fail` : ""}`;
+}
+
+function drawVerdict() {
+  const v = verdicts(), names = { imessage: "iMessage", discord: "Discord" };
+  const plays = Object.keys(names).filter((k) => v[k] === "plays").map((k) => names[k]);
+  const bad = current.checks.filter((x) => !x.ok && x.group !== "platform").length;
+  $("verdict").replaceChildren(
+    el("span", {}, [el("b", { textContent: "Video plays in: " }), plays.length ? plays.join(", ") : "none"]),
+    el("span", {}, [el("b", { textContent: "Everywhere else: " }), v._poster === "poster" ? "the poster (og:image)" : "no image"]),
+    el("span", {}, [el("b", { textContent: "Server checks: " }), bad ? `${bad} failed` : "all pass"]),
+  );
+  $("verdict").hidden = false;
+}
+
+function drawHero() {
+  const v = current.video || {}, p = current.poster || {}, c = current.card, ver = verdicts();
+  const kb = (b) => b ? `${Math.round(b / 1024).toLocaleString()} KB` : "";
+  const vb = $("hero-v-box"); vb.replaceChildren();
+  if (c.video) {
+    // No native controls: on a phone they cover the card. Tap toggles play;
+    // a refused autoplay gets the iMessage-style play button.
+    const vid = autoVideo(c.video, c.image, false, () => {
+      if (!$("hero-blocked")) $("hero-v-res").append(el("span", { id: "hero-blocked", className: "note", textContent: " · this browser refused autoplay; tap play" }));
+      if (!vb.querySelector(".playbtn")) {
+        const b = el("button", { type: "button", className: "playbtn", ariaLabel: "Play video" });
+        b.onclick = (e) => { e.stopPropagation(); vid.play().catch(() => {}); };
+        vb.append(b);
+      }
+    });
+    vid.addEventListener("playing", () => { $("hero-blocked")?.remove(); vb.querySelector(".playbtn")?.remove(); });
+    vid.addEventListener("click", () => { vid.paused ? vid.play().catch(() => {}) : vid.pause(); });
+    vid.addEventListener("error", () => vb.replaceChildren(el("div", { className: "empty", textContent: "This browser could not play the file" })), { once: true });
+    vb.append(vid);
+  } else vb.append(el("div", { className: "empty", textContent: "No og:video on this page" }));
+  const plays = ["iMessage", "Discord"].filter((n) => ver[n.toLowerCase()] === "plays");
+  $("hero-v-res").replaceChildren(c.video
+    ? el("span", { className: plays.length ? "ok" : "bad", textContent: plays.length ? `Plays in ${plays.join(", ")}` : "Won't play anywhere: see checks" })
+    : el("span", { className: "bad", textContent: "Missing" }));
+  $("hero-vf").replaceChildren(...(c.video ? [
+    el("div", { textContent: v.codec ? `${v.codec} ${v.profile || ""} · ${v.pix_fmt} · ${v.width}×${v.height} · ${v.fps} fps · ${v.duration} s · ${v.audio ? "audio" : "no audio"} · ${kb(v.bytes)}` : "not probed" }),
+    el("div", {}, [el("a", { href: c.video, target: "_blank", rel: "noopener", textContent: c.video })])] : []));
+  $("hero-i-box").replaceChildren(c.image ? el("img", { src: c.image, alt: c.alt || "" }) : el("div", { className: "empty", textContent: "No og:image: apps show a text-only card" }));
+  $("hero-if").replaceChildren(...(c.image ? [
+    el("div", { textContent: p.width ? `${p.format} · ${p.width}×${p.height} · ${kb(p.bytes)}${c.alt ? " · alt text set" : " · no alt text"}` : "unreadable" }),
+    el("div", {}, [el("a", { href: c.image, target: "_blank", rel: "noopener", textContent: c.image })])] : []));
+  $("hero").hidden = false;
+  $("tags").replaceChildren(...current.tags.map(([k, val]) => el("tr", {}, [el("td", { textContent: k }), el("td", { textContent: val })])));
+  $("tags-n").textContent = current.tags.length;
+  $("tags-block").hidden = false;
+}
+
+// ---------- browser checks ----------
+const within = (ms, fn) => new Promise((res) => { const t = setTimeout(() => res([false, "timed out"]), ms); fn((r) => { clearTimeout(t); res(r); }); });
+function bset(key, label, okv, detail) { browser[key] = { group: "browser", key, label, ok: okv, detail }; if (current) drawChecks(); }
+function browserChecks(c, seq) {
+  const live = () => seq === run.n;
+  bset("b-play", "Plays the video", null, "testing");
+  bset("b-poster", "Loads the poster", null, "testing");
+  bset("b-fall", "Shows the poster when the video fails", null, "testing");
+  if (!c.video) bset("b-play", "Plays the video", false, "no og:video");
+  else within(15000, (done) => {
+    const v = el("video", { muted: true, preload: "auto" });
+    v.addEventListener("loadeddata", () => done([true, `decoded frame 1, ${v.videoWidth}×${v.videoHeight}`]), { once: true });
+    v.addEventListener("error", () => done([false, `MediaError ${v.error && v.error.code}`]), { once: true });
+    v.src = c.video;
+  }).then(([o, d]) => live() && bset("b-play", "Plays the video", o, d));
+  if (!c.image) bset("b-poster", "Loads the poster", false, "no og:image");
+  else within(15000, (done) => {
+    const i = new Image();
+    i.onload = () => done([i.naturalWidth > 0, `${i.naturalWidth}×${i.naturalHeight}`]);
+    i.onerror = () => done([false, "load error"]);
+    i.src = c.image;
+  }).then(([o, d]) => live() && bset("b-poster", "Loads the poster", o, d));
+  const box = el("div", { className: "media" });
+  box.style.cssText = "position:absolute;left:-9999px;width:320px";
+  document.body.append(box);
+  within(15000, (done) => {
+    if (!c.image) return done([false, "no og:image to fall back to"]);
+    media(box, { ...c, video: c.video || "x" }, true, "data:video/mp4;base64,AAAAAAAA");
+    const look = () => {
+      const img = box.querySelector("img");
+      if (!img) return setTimeout(look, 100);
+      if (img.complete && img.naturalWidth) return done([true, "forced MediaError → og:image shown"]);
+      img.onload = () => done([true, "forced MediaError → og:image shown"]);
+      img.onerror = () => done([false, "forced MediaError, og:image failed to load"]);
+    };
+    look();
+  }).then(([o, d]) => { box.remove(); if (live()) bset("b-fall", "Shows the poster when the video fails", o, d); });
+}
+
+// ---------- run ----------
+async function run(url) {
+  const seq = (run.n = (run.n || 0) + 1);
+  $("go").disabled = true; $("go").textContent = "Checking…"; $("err").hidden = true; $("meta").textContent = "";
+  const t0 = performance.now();
+  try {
+    const r = await fetch("/api/inspect?url=" + encodeURIComponent(url));
+    const d = await r.json();
+    if (!r.ok) throw new Error(d.error || `HTTP ${r.status}`);
+    if (seq !== run.n) return;
+    current = d; browser = {};
+    d.card.alt = (d.tags.find(([k]) => k === "og:image:alt") || [])[1] || "";
+    $("checks-block").hidden = false; $("pv-block").hidden = false;
+    drawHero(); drawVerdict(); drawChecks(); drawPlatforms();
+    const c = d.card;
+    $("i-t").textContent = c.title || ""; $("i-d").textContent = c.domain || "";
+    $("d-site").textContent = c.site || c.domain || ""; $("d-t").textContent = c.title || ""; $("d-d").textContent = c.description || "";
+    $("x-domain").textContent = c.domain || "";
+    $("f-domain").textContent = c.domain || ""; $("f-t").textContent = c.title || "";
+    drawPreviews();
+    browserChecks(c, seq);
+    $("meta").textContent = `${new URL(d.final_url).host} · ${((performance.now() - t0) / 1000).toFixed(1)} s`;
+    history.replaceState(null, "", "?url=" + encodeURIComponent(url));
+  } catch (e) {
+    $("err").textContent = e.message; $("err").hidden = false;
+  } finally {
+    $("go").disabled = false; $("go").textContent = "Check";
+  }
+}
+
+fetch("support.json").then((r) => r.json()).then((d) => { support = d; drawPlatforms(); })
+  .catch(() => { $("plat").replaceChildren(el("tr", {}, [el("td", { colSpan: 4, textContent: "Support list unavailable." })])); });
+$("f").addEventListener("submit", (e) => { e.preventDefault(); run($("u").value.trim()); });
+const q = new URLSearchParams(location.search).get("url");
+if (q) $("u").value = q;
+run($("u").value.trim());
+</script>
+</body>
+</html>
