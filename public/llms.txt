@@ -34,14 +34,14 @@ Errors are JSON `{"error": "..."}` with status 400 (bad or refused URL: private 
 
 ## What the results mean (as of 24 Oct 2026)
 
-- Only iMessage is confirmed to play og:video (autoplays muted and loops; poster with a play button when the recipient has autoplay off or Reduce Motion on; 10 MB cap).
-- Discord plays it only when og:type is video.* or twitter:card is player. Do not tell a site to declare og:type video on a normal page just for Discord: it misdescribes the page to every other consumer.
-- X (Twitter), Facebook, Telegram, WhatsApp, Slack, LinkedIn, Bluesky, Mastodon, Signal and Matrix show og:image. Facebook and Telegram were tested on devices; the viral "og:video works on X" posts were screen recordings of iMessage.
-- So og:image is what most people see: it must exist, be 1.91:1 and at least 600 px wide, and match the video's first frame if there is a video.
+- Only iMessage is confirmed to play og:video (device-tested 24 Oct 2026: autoplays muted and loops; poster with a play button when the recipient has autoplay off or Reduce Motion on). Apple's size figures are guidelines, not hard limits: the page itself under 1 MB, and icon, image and video together under 10 MB.
+- Discord plays it only when og:type is video or video.*, or twitter:card is player. Do not tell a site to declare og:type video on a normal page just for Discord: it misdescribes the page to every other consumer.
+- X (Twitter), Facebook, Telegram, WhatsApp, Slack, LinkedIn, Bluesky, Mastodon, Signal and Matrix (Element) show og:image. Facebook and Telegram were tested on devices; the rest follow each platform's own documentation (sources in support.json). The viral "og:video works on X" posts were screen recordings of iMessage.
+- So og:image is what most people see: it must exist, be 1.91:1 and at least 600 px wide (Apple suggests 900 or more), and match the video's first frame if there is a video.
 
 ## Advice an agent should give
 
-- Video: H.264 (High or Main), yuv420p, MP4 with faststart (moov before mdat), served as video/mp4 over https with range requests (206), under 10 MB, ideally a short loop with no audio.
+- Video: H.264 (High or Main), yuv420p, MP4 with faststart (moov before mdat), served as video/mp4 over https with range requests (206), well under 10 MB, ideally a short loop with no audio. The size figure is Apple's guideline; the codec, pixel format and faststart advice is what plays most widely, not a published rule.
 - Tags: og:video, og:video:secure_url, og:video:type=video/mp4, og:video:width, og:video:height, plus og:image (the poster) with og:image:width/height and og:image:alt, and twitter:card=summary_large_image.
 - Version the video URL (for example `?v=<hash>`) when the file changes; previews are cached by URL.
 - X overlays the domain in a dark pill at the bottom-left of the card image; keep text and logos out of the bottom-left corner (about the lower 15% and left 40%). Keep important content away from the edges too: some apps crop to a different aspect or round the corners.

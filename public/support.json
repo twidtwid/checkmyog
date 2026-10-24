@@ -5,14 +5,14 @@
   {
    "platform": "iMessage",
    "status": "plays",
-   "note": "Autoplays the MP4, looping; 10 MB cap. With autoplay off or Reduce Motion: poster with a play button. Tested 24 Oct.",
+   "note": "Autoplays the MP4 muted, looping. With autoplay off or Reduce Motion: poster with a play button. Apple's guideline: icon, image and video under 10 MB together. Device-tested 24 Oct 2026.",
    "source": "https://developer.apple.com/documentation/technotes/tn3156-create-rich-previews-for-messages",
    "source_date": "2024-04"
   },
   {
    "platform": "Discord",
    "status": "poster",
-   "note": "Still image for normal pages. Plays only if the page claims og:type video.*.",
+   "note": "Still image for normal pages. Plays only if og:type is video or video.*, or twitter:card is player.",
    "source": "https://docs.discord.com/developers/link-previews/overview",
    "source_date": "n.d."
   },
@@ -40,16 +40,16 @@
   {
    "platform": "Slack",
    "status": "poster",
-   "note": "Unfurls show og:image; video needs an app unfurl.",
-   "source": "https://github.com/slackapi/python-slack-sdk/issues/1811",
-   "source_date": "2025"
+   "note": "Classic unfurls read Open Graph and Twitter Card tags and show og:image; video players only for sites Slack handles itself, or through an app unfurl.",
+   "source": "https://docs.slack.dev/messaging/unfurling-links-in-messages/#classic_unfurl",
+   "source_date": "n.d."
   },
   {
    "platform": "Bluesky",
    "status": "poster",
-   "note": "Link cards are thumbnail only; players for a few named sites.",
-   "source": "https://github.com/bluesky-social/social-app/issues/1289",
-   "source_date": "2023-12"
+   "note": "Link cards carry a title, description and one thumbnail (app.bsky.embed.external); there is no video field.",
+   "source": "https://docs.bsky.app/docs/advanced-guides/posts#website-card-embeds",
+   "source_date": "n.d."
   },
   {
    "platform": "Mastodon",
@@ -61,7 +61,7 @@
   {
    "platform": "Signal",
    "status": "poster",
-   "note": "Title and image only.",
+   "note": "Shows og:image with the title and description; no video.",
    "source": "https://support.signal.org/hc/en-us/articles/360022474332-Link-Previews",
    "source_date": "n.d."
   },
@@ -75,9 +75,9 @@
   {
    "platform": "Matrix / Element",
    "status": "poster",
-   "note": "Preview API returns images only.",
-   "source": "https://github.com/matrix-construct/tuwunel/issues/394",
-   "source_date": "2026"
+   "note": "Element shows the title, description and og:image that the homeserver's URL preview endpoint returns; no og:video support.",
+   "source": "https://spec.matrix.org/latest/client-server-api/#get_matrixclientv1mediapreview_url",
+   "source_date": "n.d."
   },
   {
    "platform": "Facebook",
