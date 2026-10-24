@@ -62,6 +62,22 @@ class Refusals(unittest.TestCase):
             server.fetch("http://example.com:8080/", "x")
 
 
+class Verdicts(unittest.TestCase):
+    def test_imessage_and_discord_play_a_good_mp4(self):
+        """Both apps play og:video when every video check passes; one failed
+        video check (here faststart) drops both. Discord has no rule of its own."""
+        r = {"card": {"video": "https://example.com/v.mp4", "image": "https://example.com/p.png"},
+             "checks": [server.check(True, "og:video present"), server.check(True, "Video URL is absolute https"),
+                        server.check(True, "og:video:type is video/mp4"), server.check(True, "H.264 video"),
+                        server.check(True, "iMessage size guideline (video ≤ 10 MB)")]}
+        self.assertEqual(server.verdicts(r)["summary"]["video_plays_in"], ["iMessage", "Discord"])
+        r["checks"].append(server.check(False, "Faststart (moov before mdat)"))
+        self.assertEqual(server.verdicts(r)["summary"]["video_plays_in"], [])
+        r["checks"][-1] = server.check(True, "Faststart (moov before mdat)")
+        r["checks"][-2] = server.check(False, "iMessage size guideline (video ≤ 10 MB)")
+        self.assertEqual(server.verdicts(r)["summary"]["video_plays_in"], ["Discord"])
+
+
 class Fixture(BaseHTTPRequestHandler):
     """A tiny site with a card: / has og tags, /og.png is a 1200x630 PNG."""
     def log_message(self, *a):
