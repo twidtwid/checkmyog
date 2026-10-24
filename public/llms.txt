@@ -1,18 +1,18 @@
-# OG Checker
+# Check My OG
 
 > Checks how a web page's link preview will look when the URL is shared: it fetches the page as Twitterbot and facebookexternalhit, reads the Open Graph and Twitter tags, downloads and probes the og:video and og:image files (status, content type, range requests, MP4 faststart, codec, size, duration), and says which apps will play the video and which will show the og:image poster.
 
-Base URL: https://ogchecker-bq3fs.sprites.app
-No key, no sign-in. CORS is open. Rate limit: 20 checks per minute per client IP.
+Base URL: {{PUBLIC_URL}}
+No key, no sign-in. CORS is open. Rate limit: 20 checks per minute per client IP. The hosted instance records each checked URL in its analytics; self-host it (see the repo) if that matters.
 
 ## Call it
 
 - Markdown report (best for reading into a model):
-  `curl -s "https://ogchecker-bq3fs.sprites.app/api/inspect?url=https://example.com/&format=md"`
+  `curl -s "{{PUBLIC_URL}}/api/inspect?url=https://example.com/&format=md"`
 - JSON (best for code):
-  `curl -s "https://ogchecker-bq3fs.sprites.app/api/inspect?url=https://example.com/"`
+  `curl -s "{{PUBLIC_URL}}/api/inspect?url=https://example.com/"`
 - Human page with players and app previews:
-  `https://ogchecker-bq3fs.sprites.app/?url=https://example.com/`
+  `{{PUBLIC_URL}}/?url=https://example.com/`
 
 URL-encode the `url` parameter if it has its own query string. `/api/check` is an alias of `/api/inspect`. `Accept: text/markdown` also selects the Markdown report.
 
@@ -52,5 +52,14 @@ Errors are JSON `{"error": "..."}` with status 400 (bad or refused URL: private 
 
 ## Other files
 
-- OpenAPI spec: https://ogchecker-bq3fs.sprites.app/openapi.json
-- Platform support data: https://ogchecker-bq3fs.sprites.app/support.json
+- OpenAPI spec: {{PUBLIC_URL}}/openapi.json
+- Platform support data: {{PUBLIC_URL}}/support.json
+
+## Source, issues and pull requests
+
+Open source (MIT): https://github.com/twidtwid/checkmyog
+
+- Found a wrong verdict, or an app that previews differently than `support.json` says? Open an issue with the "Platform behavior" form: https://github.com/twidtwid/checkmyog/issues/new?template=platform.yml. Include the URL you checked, the app and its version, the device, and what you saw (a screenshot or screen recording is the best evidence).
+- Bug in the checker itself: https://github.com/twidtwid/checkmyog/issues/new?template=bug.yml with the URL checked and the JSON or Markdown report.
+- Pull requests are welcome, including ones written by agents. Read https://github.com/twidtwid/checkmyog/blob/main/CONTRIBUTING.md first (section "For AI agents"): run the tests, keep the server stdlib-only, cite a source for any change to `support.json`, and say in the PR that an agent wrote it.
+- Security problems (for example a way around the private-address block): don't open a public issue; see https://github.com/twidtwid/checkmyog/security/policy.

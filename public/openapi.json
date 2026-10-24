@@ -1,8 +1,8 @@
 {
   "openapi": "3.1.0",
-  "info": {"title": "OG Checker", "version": "1.0.0",
+  "info": {"title": "Check My OG", "version": "1.0.0",
     "description": "Check a page's Open Graph link preview as crawlers see it, including og:video playback support per app. See /llms.txt."},
-  "servers": [{"url": "https://ogchecker-bq3fs.sprites.app"}],
+  "servers": [{"url": "{{PUBLIC_URL}}"}],
   "paths": {
     "/api/inspect": {
       "get": {
