@@ -1,5 +1,7 @@
 # Check My OG
 
+[![Check My OG: your link preview, previewed.](assets/social-preview.png)](https://checkmyog.com)
+
 See how a link will preview before you share it. [checkmyog.com](https://checkmyog.com)
 
 Most link-preview checkers read your tags and stop. This one fetches the page the way Twitterbot and facebookexternalhit do, then downloads the files the tags point at and checks them: whether `og:image` is a real 1.91:1 image the right size, whether `og:video` is H.264, yuv420p, faststart, served as `video/mp4` with range requests and small enough for iMessage. It then tells you which apps will play the video and which will show the poster, with a source for each claim.
