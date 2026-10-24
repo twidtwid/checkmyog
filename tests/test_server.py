@@ -139,6 +139,10 @@ class EndToEnd(unittest.TestCase):
         self.assertEqual(code, 200)
         self.assertTrue(ctype.startswith("text/markdown"))
         self.assertTrue(body.startswith("# Check My OG: "))
+        self.assertIn("| og:image present", body)          # labels keep their case: og:image, iMessage, yuv420p
+        self.assertNotIn("Og:", body)
+        self.assertIn("| Poster answers 200", body)         # "Fallback: " dropped, sentence starts with a capital
+        self.assertIn("| Poster is PNG, JPEG, GIF or WebP", body)   # and the rest of the label is untouched
 
     def test_refused_and_missing(self):
         self.assertEqual(self.get("/api/inspect")[0], 400)

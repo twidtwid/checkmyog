@@ -450,8 +450,11 @@ def to_markdown(r: dict) -> str:
     for x in r["checks"]:
         res = ("YES" if x["ok"] else "NO") if x["group"] == "platform" else ("PASS" if x["ok"] else "FAIL")
         cell = lambda t: str(t).replace("|", "\\|").replace("\n", " ")  # noqa: E731
-        label = x["label"].removeprefix("Fallback: ")
-        out.append(f"| {res} | {x['group']} | {cell(label[:1].upper() + label[1:])} | {cell(x['detail'])} |")
+        label = x["label"]
+        if label.startswith("Fallback: "):        # the group column says it; start the sentence instead
+            label = label[len("Fallback: "):]
+            label = label[:1].upper() + label[1:]
+        out.append(f"| {res} | {x['group']} | {cell(label)} | {cell(x['detail'])} |")
     out += ["", f"## Platforms (support as of {r.get('support_as_of')})", "", "| App | This URL | Note |", "|---|---|---|"]
     for pl in r["platforms"]:
         out.append(f"| {pl['platform']} | {pl['result']} | {pl['note']} |")
