@@ -20,7 +20,7 @@ URL-encode the `url` parameter if it has its own query string. `/api/check` is a
 
 ## JSON response, the fields that matter
 
-- `summary.video_plays_in`: apps that will play og:video for this URL (today usually `["iMessage"]` or `[]`).
+- `summary.video_plays_in`: apps that will play og:video for this URL (today `["iMessage", "Discord"]` for a good MP4, or `[]`).
 - `summary.everywhere_else`: `"poster"` (og:image shown) or `"none"` (text-only card).
 - `summary.checks_failed`: labels of failed checks; empty means everything passed.
 - `platforms[]`: `{platform, result: "plays"|"poster"|"none", note, source}` per app.
@@ -34,8 +34,8 @@ Errors are JSON `{"error": "..."}` with status 400 (bad or refused URL: private 
 
 ## What the results mean (as of 24 Oct 2026)
 
-- Only iMessage is confirmed to play og:video (device-tested 24 Oct 2026: autoplays muted and loops; poster with a play button when the recipient has autoplay off or Reduce Motion on). Apple's size figures are guidelines, not hard limits: the page itself under 1 MB, and icon, image and video together under 10 MB.
-- Discord plays it only when og:type is video or video.*, or twitter:card is player. Do not tell a site to declare og:type video on a normal page just for Discord: it misdescribes the page to every other consumer.
+- iMessage plays og:video (device-tested 24 Oct 2026: autoplays muted and loops; poster with a play button when the recipient has autoplay off or Reduce Motion on). Apple's size figures are guidelines, not hard limits: the page itself under 1 MB, and icon, image and video together under 10 MB.
+- Discord plays it too, as an inline player with a play button; it never autoplays. Device-tested 24 Oct 2026 on the Mac and iOS clients with a plain og:type website page and a direct MP4. Discord's docs only describe og:type video.* or twitter:card player; neither was needed, so do not tell a site to declare og:type video on a normal page: it misdescribes the page to every other consumer.
 - X (Twitter), Facebook, Telegram, WhatsApp, Slack, LinkedIn, Bluesky, Mastodon, Signal and Matrix (Element) show og:image. Facebook and Telegram were tested on devices; the rest follow each platform's own documentation (sources in support.json). The viral "og:video works on X" posts were screen recordings of iMessage.
 - So og:image is what most people see: it must exist, be 1.91:1 and at least 600 px wide (Apple suggests 900 or more), and match the video's first frame if there is a video.
 
@@ -50,7 +50,7 @@ Errors are JSON `{"error": "..."}` with status 400 (bad or refused URL: private 
 
 - Open Graph protocol (defines og:video and og:image and their structured properties): https://ogp.me/ (see https://ogp.me/#structured)
 - Apple TN3156, rich previews in Messages (the og:video autoplay rules): https://developer.apple.com/documentation/technotes/tn3156-create-rich-previews-for-messages
-- Discord link previews (og:video needs og:type video.* or twitter:card player): https://docs.discord.com/developers/link-previews/overview
+- Discord link previews (documents og:type video.* and twitter:card player; a direct MP4 in og:video embedded without them in our test): https://docs.discord.com/developers/link-previews/overview
 - X has no current public cards documentation; its old Card Validator was retired.
 
 ## Other files

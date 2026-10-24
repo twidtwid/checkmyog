@@ -11,8 +11,8 @@
   },
   {
    "platform": "Discord",
-   "status": "poster",
-   "note": "Still image for normal pages. Plays only if og:type is video or video.*, or twitter:card is player.",
+   "status": "plays",
+   "note": "Inline player with a play button; does not autoplay. Device-tested 24 Oct 2026 on the Mac and iOS clients with a plain og:type website page and a direct MP4. Discord's docs only describe og:type video.* or twitter:card player; neither was needed.",
    "source": "https://docs.discord.com/developers/link-previews/overview",
    "source_date": "n.d."
   },

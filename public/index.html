@@ -312,8 +312,8 @@ function autoVideo(src, posterUrl, controls, onBlocked) {
 function poster(card) {
   return card.image ? el("img", { src: card.image, alt: card.alt || "" }) : el("div", { className: "empty", textContent: "No og:image" });
 }
-// playVideo: false (poster), true (autoplay), or "button" (iMessage with
-// autoplay off: the poster with a play button that starts the video).
+// playVideo: false (poster), true (autoplay), or "button" (the poster with a
+// play button that starts the video: Discord, or iMessage with autoplay off).
 // An autoplay the browser refuses also falls back to the button.
 function media(box, card, playVideo, videoSrc) {
   box.querySelectorAll("video,img,.empty,.playbtn").forEach((n) => n.remove());
@@ -343,11 +343,11 @@ function media(box, card, playVideo, videoSrc) {
 function drawPreviews() {
   const c = current.card, v = verdicts();
   media($("i-media"), c, v.imessage !== "plays" || mode === "fallback" ? false : mode === "paused" ? "button" : true);
-  media($("d-media"), c, mode === "video" && v.discord === "plays");
+  media($("d-media"), c, mode !== "fallback" && v.discord === "plays" ? "button" : false);   // Discord never autoplays
   media($("x-media"), c, false);
   media($("f-media"), c, false);
   const lab = (k) => mode === "fallback" ? "og:image (forced)" : v[k] !== "plays" ? "og:image"
-    : mode === "paused" ? (k === "imessage" ? "og:video, tap to play" : "og:video") : "og:video";
+    : k === "discord" || mode === "paused" ? "og:video, tap to play" : "og:video";
   $("i-lab").textContent = lab("imessage"); $("d-lab").textContent = lab("discord");
 }
 function setMode(m) {
@@ -370,7 +370,7 @@ function verdicts() {
   const posterOr = c.image ? "poster" : "none";
   return {
     imessage: videoOk && ok("imsize") ? "plays" : posterOr,
-    discord: videoOk && ok("discord") ? "plays" : posterOr,
+    discord: videoOk ? "plays" : posterOr,
     _poster: posterOr,
   };
 }

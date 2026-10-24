@@ -220,8 +220,7 @@ GROUPS = [
     ("Video answers 200", "video", "v200"), ("Served as video/mp4", "video", "vctype"),
     ("Range requests", "video", "range"), ("Faststart", "video", "faststart"),
     ("H.264", "video", "h264"), ("yuv420p", "video", "yuv"), ("Real size", "video", "vsize"),
-    ("Duration", "video", "dur"), ("Discord will play", "platform", "discord"),
-    ("iMessage size", "platform", "imsize"), ("Fallback", "poster", ""),
+    ("Duration", "video", "dur"), ("iMessage size", "platform", "imsize"), ("Fallback", "poster", ""),
 ]
 
 
@@ -259,8 +258,6 @@ def inspect(url: str) -> dict:
     checks.append(check(bool(card["image"]), "og:image present (the poster)", card["image"] or "missing"))
     checks.append(check(card["twitter_card"] in ("summary_large_image", "player"), "twitter:card is summary_large_image",
                         card["twitter_card"] or "missing"))
-    card["discord_plays"] = bool(card["video"]) and (
-        (card["og_type"] or "").startswith("video") or card["twitter_card"] == "player")
     raw_video = first(tags, "og:video", "og:video:url", "og:video:secure_url")
     checks.append(check(bool(raw_video), "og:video present", card["video"] or "missing"))
     video = {}
@@ -277,8 +274,6 @@ def inspect(url: str) -> dict:
         _, rs, rh, _, _ = fetch(card["video"], UA["x"], rng="bytes=0-1023", cap=2048)
         checks.append(check(rs == 206, "Range requests work (206)", f"HTTP {rs}, {rh.get('content-range', '')}"))
         size = len(vbody)
-        checks.append(check(card["discord_plays"], "Discord will play it (og:type video.* or twitter:card player)",
-                            f"og:type {card['og_type'] or 'missing'}, twitter:card {card['twitter_card'] or 'missing'}"))
         checks.append(check(not trunc and size <= 10 * 1024 * 1024, "iMessage size guideline (video ≤ 10 MB)",
                             f"{size / 1024:,.0f} KB" + (" (over the 40 MB read cap)" if trunc else "")
                             + "; Apple's 10 MB covers icon, image and video together"))
@@ -397,14 +392,15 @@ def load_support() -> dict:
 
 def verdicts(r: dict) -> dict:
     """What each app shows for this URL. Same rules as the page: a platform
-    that plays og:video plays it only if every video check passes and the
-    platform's own rule (iMessage size, Discord og:type) holds; every other
-    platform shows og:image (or a text-only card without one)."""
+    that plays og:video (status "plays" in support.json) plays it only if
+    every video check passes and its own rule, if any, holds (iMessage: the
+    size guideline); every other platform shows og:image (or a text-only
+    card without one)."""
     c, ok = r["card"], {x["key"]: x["ok"] for x in r["checks"] if x["key"]}
     video_ok = bool(c["video"]) and all(
         x["ok"] for x in r["checks"] if x["group"] == "video" or x["key"] in ("video", "https", "vtype"))
     poster = "poster" if c["image"] else "none"
-    rule = {"iMessage": ok.get("imsize"), "Discord": ok.get("discord")}
+    rule = {"iMessage": ok.get("imsize")}
     sup = load_support()
     platforms = []
     for p in sup.get("platforms", []):

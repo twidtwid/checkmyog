@@ -6,7 +6,7 @@ See how a link will preview before you share it. [checkmyog.com](https://checkmy
 
 Most link-preview checkers read your tags and stop. This one fetches the page the way Twitterbot and facebookexternalhit do, then downloads the files the tags point at and checks them: whether `og:image` is a real 1.91:1 image the right size, whether `og:video` is H.264, yuv420p, faststart, served as `video/mp4` with range requests and small enough for iMessage. It then tells you which apps will play the video and which will show the poster, with a source for each claim.
 
-Short version of what it has found so far: only iMessage plays `og:video` on a normal page. Discord plays it only when `og:type` is `video` or `video.*`, or `twitter:card` is `player`. Everyone else (X, Facebook, LinkedIn, Slack, WhatsApp, Telegram, Bluesky, Mastodon, Signal, Matrix) shows `og:image`, so that image matters most. X also covers its bottom-left corner with the domain, so keep text and logos out of there. The current list with sources is in [`public/support.json`](public/support.json).
+Short version of what it has found so far: iMessage autoplays `og:video`, Discord shows it with a play button, and everyone else (X, Facebook, LinkedIn, Slack, WhatsApp, Telegram, Bluesky, Mastodon, Signal, Matrix) shows `og:image`, so that image matters most. X also covers its bottom-left corner with the domain, so keep text and logos out of there. The current list with sources is in [`public/support.json`](public/support.json).
 
 ## Use it
 
