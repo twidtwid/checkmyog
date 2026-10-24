@@ -119,6 +119,7 @@ class Meta(HTMLParser):
     def __init__(self):
         super().__init__()
         self.tags: list[tuple[str, str]] = []
+        self.icons: list[tuple[str, str]] = []   # (rel, href): the icon Messages shows on a card without an image
         self.title = ""
         self._in_title = False
 
@@ -128,6 +129,10 @@ class Meta(HTMLParser):
             key = a.get("property") or a.get("name")
             if key and a.get("content") is not None:
                 self.tags.append((key.strip().lower(), a["content"].strip()))
+        elif tag == "link":
+            rel = (a.get("rel") or "").lower().split()
+            if a.get("href") and ("icon" in rel or "apple-touch-icon" in rel):
+                self.icons.append(("apple-touch-icon" if "apple-touch-icon" in rel else "icon", a["href"].strip()))
         elif tag == "title":
             self._in_title = True
 
@@ -250,6 +255,10 @@ def inspect(url: str) -> dict:
         "site": first(tags, "og:site_name"),
         "og_type": first(tags, "og:type"),
         "domain": urlsplit(final).hostname,
+        # Messages puts the site icon on a card that has no image (apple-touch-icon first).
+        "icon": absu(next((h for r, h in p.icons if r == "apple-touch-icon"), None) or next((h for _, h in p.icons), None)),
+        # Discord and X build nothing from a page with neither og: nor twitter: tags; the others fall back to <title>.
+        "og_tags": sum(1 for k, _ in tags if k.startswith(("og:", "twitter:"))),
     }
     checks = [check(status == 200, "Page answers 200 to Twitterbot", f"HTTP {status}, {final}")]
     _, fb_status, _, fb_body, _ = fetch(url, UA["facebook"])
@@ -429,7 +438,13 @@ def to_markdown(r: dict) -> str:
     c, sm, v, p = r["card"], r["summary"], r.get("video") or {}, r.get("poster") or {}
     out = [f"# Check My OG: {r['final_url']}", ""]
     out.append(f"- Video plays in: {', '.join(sm['video_plays_in']) or 'none'}")
-    out.append(f"- Everywhere else: {'og:image poster' if sm['everywhere_else'] == 'poster' else 'text-only card (no og:image)'}")
+    if sm["everywhere_else"] == "poster":
+        out.append("- Everywhere else: og:image poster")
+    elif c.get("og_tags"):
+        out.append("- Everywhere else: text-only card (no og:image)")
+    else:
+        out.append("- Everywhere else: no og tags at all: Discord and X show just the link; iMessage, Facebook, LinkedIn, "
+                   "Slack and WhatsApp make a text-only card from the page title")
     out.append(f"- Checks: {sm['checks_passed']} passed, {len(sm['checks_failed'])} failed")
     out += ["", "## Files", ""]
     if c.get("video"):
