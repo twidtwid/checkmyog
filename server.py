@@ -220,7 +220,8 @@ def probe(data: bytes) -> dict:
 GROUPS = [
     ("Page answers 200", "page", "page_ok"), ("Facebook crawler", "page", "fb"),
     ("og:image present", "tags", "image"), ("twitter:card", "tags", "twcard"),
-    ("og:video present", "tags", "video"), ("Video URL is absolute", "tags", "https"),
+    ("og:video present", "tags", "video"), ("og:video (optional)", "tags", ""),
+    ("Video URL is absolute", "tags", "https"),
     ("og:video:type", "tags", "vtype"), ("og:video:width", "tags", "vdims"),
     ("Video answers 200", "video", "v200"), ("Served as video/mp4", "video", "vctype"),
     ("Range requests", "video", "range"), ("Faststart", "video", "faststart"),
@@ -231,7 +232,15 @@ GROUPS = [
 
 def check(ok, label, detail=""):
     group, key = next(((g, k) for pre, g, k in GROUPS if label.startswith(pre)), ("other", ""))
-    return {"ok": bool(ok), "label": label, "detail": detail, "group": group, "key": key}
+    return {"ok": bool(ok), "info": False, "label": label, "detail": detail, "group": group, "key": key}
+
+
+def note(label, detail=""):
+    """A row that is a fact, not a verdict: ok is null, info is true, and the
+    passed/failed counts leave it out. A page without og:video gets one, since
+    most pages have none and every app shows og:image anyway."""
+    group, _ = next(((g, k) for pre, g, k in GROUPS if label.startswith(pre)), ("other", ""))
+    return {"ok": None, "info": True, "label": label, "detail": detail, "group": group, "key": ""}
 
 
 def inspect(url: str) -> dict:
@@ -261,14 +270,28 @@ def inspect(url: str) -> dict:
         "og_tags": sum(1 for k, _ in tags if k.startswith(("og:", "twitter:"))),
     }
     checks = [check(status == 200, "Page answers 200 to Twitterbot", f"HTTP {status}, {final}")]
+    raw_video = first(tags, "og:video", "og:video:url", "og:video:secure_url")
+    # Does Facebook's crawler get the same page? Judged on the tag that matters most for this page.
     _, fb_status, _, fb_body, _ = fetch(url, UA["facebook"])
-    checks.append(check(fb_status == 200 and b"og:video" in fb_body,
-                        "Facebook crawler sees og:video too", f"HTTP {fb_status}"))
+    if raw_video:
+        checks.append(check(fb_status == 200 and b"og:video" in fb_body,
+                            "Facebook crawler sees og:video too", f"HTTP {fb_status}"))
+    elif card["image"]:
+        fbp = Meta()
+        fbp.feed(fb_body.decode("utf-8", "replace"))
+        checks.append(check(fb_status == 200 and bool(first(fbp.tags, "og:image", "og:image:secure_url", "twitter:image")),
+                            "Facebook crawler sees og:image too", f"HTTP {fb_status}"))
+    else:
+        checks.append(check(fb_status == 200, "Facebook crawler gets the page too", f"HTTP {fb_status}"))
     checks.append(check(bool(card["image"]), "og:image present (the poster)", card["image"] or "missing"))
     checks.append(check(card["twitter_card"] in ("summary_large_image", "player"), "twitter:card is summary_large_image",
                         card["twitter_card"] or "missing"))
-    raw_video = first(tags, "og:video", "og:video:url", "og:video:secure_url")
-    checks.append(check(bool(raw_video), "og:video present", card["video"] or "missing"))
+    if raw_video:
+        checks.append(check(True, "og:video present", card["video"]))
+    else:
+        # Not a failure: most pages have no video, and only iMessage and Discord ever play one.
+        checks.append(note("og:video (optional)", "none, like most pages. Only iMessage and Discord ever play one; "
+                                                  "every other app shows og:image anyway"))
     video = {}
     if card["video"]:
         checks.append(check(card["video"].startswith("https://"), "Video URL is absolute https", card["video"]))
@@ -420,7 +443,7 @@ def verdicts(r: dict) -> dict:
             res = poster
         platforms.append({"platform": name, "result": res, "note": p.get("note", ""),
                           "source": p.get("source", "")})
-    scored = [x for x in r["checks"] if x["group"] != "platform"]
+    scored = [x for x in r["checks"] if x["group"] != "platform" and not x.get("info")]
     return {
         "summary": {
             "video_plays_in": [p["platform"] for p in platforms if p["result"] == "plays"],
@@ -445,7 +468,9 @@ def to_markdown(r: dict) -> str:
     else:
         out.append("- Everywhere else: no og tags at all: Discord and X show just the link; iMessage, Facebook, LinkedIn, "
                    "Slack and WhatsApp make a text-only card from the page title")
-    out.append(f"- Checks: {sm['checks_passed']} passed, {len(sm['checks_failed'])} failed")
+    notes = sum(1 for x in r["checks"] if x.get("info"))
+    out.append(f"- Checks: {sm['checks_passed']} passed, {len(sm['checks_failed'])} failed"
+               + (f", {notes} note{'s' if notes > 1 else ''}" if notes else ""))
     out += ["", "## Files", ""]
     if c.get("video"):
         out.append(f"- og:video: {c['video']}")
@@ -453,13 +478,16 @@ def to_markdown(r: dict) -> str:
             out.append(f"  - {v['codec']} {v.get('profile') or ''}, {v['pix_fmt']}, {v['width']}x{v['height']}, "
                        f"{v['fps']} fps, {v['duration']} s, {'audio' if v['audio'] else 'no audio'}, {v['bytes']} bytes")
     else:
-        out.append("- og:video: missing")
+        out.append("- og:video: none (optional)")
     out.append(f"- og:image: {c.get('image') or 'missing'}")
     if p.get("width"):
         out.append(f"  - {p['format']}, {p['width']}x{p['height']}, {p['bytes']} bytes")
     out += ["", "## Checks", "", "| Result | Group | Check | Value |", "|---|---|---|---|"]
     for x in r["checks"]:
-        res = ("YES" if x["ok"] else "NO") if x["group"] == "platform" else ("PASS" if x["ok"] else "FAIL")
+        if x.get("info"):
+            res = "NOTE"
+        else:
+            res = ("YES" if x["ok"] else "NO") if x["group"] == "platform" else ("PASS" if x["ok"] else "FAIL")
         cell = lambda t: str(t).replace("|", "\\|").replace("\n", " ")  # noqa: E731
         label = x["label"]
         if label.startswith("Fallback: "):        # the group column says it; start the sentence instead

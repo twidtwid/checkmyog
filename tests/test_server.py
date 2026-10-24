@@ -79,6 +79,20 @@ class Verdicts(unittest.TestCase):
         r["checks"][-2] = server.check(False, "iMessage size guideline (video ≤ 10 MB)")
         self.assertEqual(server.verdicts(r)["summary"]["video_plays_in"], ["Discord"])
 
+    def test_a_note_counts_in_neither_direction(self):
+        """A page without og:video previews fine everywhere, so that row is a
+        note: ok null, info true, left out of both passed and failed."""
+        r = {"card": {"video": None, "image": "https://example.com/p.png"},
+             "checks": [server.check(True, "Page answers 200 to Twitterbot"), server.note("og:video (optional)", "none"),
+                        server.check(False, "Fallback: poster has alt text")], "final_url": "https://example.com/", "tags": []}
+        r.update(server.verdicts(r))
+        self.assertEqual((r["summary"]["checks_passed"], r["summary"]["checks_failed"]), (1, ["Fallback: poster has alt text"]))
+        self.assertEqual(r["summary"]["video_plays_in"], [])
+        md = server.to_markdown(r)
+        self.assertIn("- Checks: 1 passed, 1 failed, 1 note\n", md)
+        self.assertIn("| NOTE | tags | og:video (optional) | none |", md)
+        self.assertIn("| FAIL | poster | Poster has alt text |", md)
+
 
 class Fixture(BaseHTTPRequestHandler):
     """A tiny site with a card: / has og tags, /og.png is a 1200x630 PNG."""
@@ -184,7 +198,13 @@ class EndToEnd(unittest.TestCase):
         self.assertEqual(r["poster"], {"format": "png", "width": 1200, "height": 630, "bytes": len(PNG_1200x630)})
         self.assertEqual(r["summary"]["everywhere_else"], "poster")
         self.assertEqual(r["summary"]["video_plays_in"], [])
-        self.assertIn("og:video present", r["summary"]["checks_failed"])
+        # No og:video is a note, not a failure: the fixture passes everything else.
+        self.assertEqual(r["summary"]["checks_failed"], [])
+        video_note = next(x for x in r["checks"] if x["label"] == "og:video (optional)")
+        self.assertEqual((video_note["ok"], video_note["info"], video_note["group"]), (None, True, "tags"))
+        self.assertEqual(r["summary"]["checks_passed"],
+                         sum(1 for x in r["checks"] if x["ok"] is True and x["group"] != "platform"))
+        self.assertIn("Facebook crawler sees og:image too", [x["label"] for x in r["checks"]])
         self.assertTrue(r["final_url"].endswith("/"))
 
     def test_inspect_markdown(self):
@@ -196,6 +216,9 @@ class EndToEnd(unittest.TestCase):
         self.assertNotIn("Og:", body)
         self.assertIn("| Poster answers 200", body)         # "Fallback: " dropped, sentence starts with a capital
         self.assertIn("| Poster is PNG, JPEG, GIF or WebP", body)   # and the rest of the label is untouched
+        self.assertIn("| NOTE | tags | og:video (optional) |", body)
+        self.assertIn(" failed, 1 note\n", body)
+        self.assertIn("- og:video: none (optional)", body)
 
     def test_refused_and_missing(self):
         self.assertEqual(self.get("/api/inspect")[0], 400)
