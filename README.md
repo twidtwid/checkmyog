@@ -13,6 +13,7 @@ Short version of what it has found so far: iMessage autoplays `og:video`, Discor
 - In a browser: `https://checkmyog.com/?url=https://example.com/`
 - Markdown report (good for pasting into a model): `curl -s "https://checkmyog.com/api/inspect?url=https://example.com/&format=md"`
 - JSON: `curl -s "https://checkmyog.com/api/inspect?url=https://example.com/"`
+- Pages to test an app with: `https://checkmyog.com/` itself passes every check, and so does `https://thisisaridiculouslylongdomainnamemadeonlytotestyourlinkpreviews.international/`, a 77-character domain (the longest label the DNS allows) served by this same app, for seeing what an app does with a very long name. The example pills under the URL box run these.
 
 No key and no sign-in, 20 checks a minute per IP. [`llms.txt`](public/llms.txt) explains the API for agents and [`openapi.json`](public/openapi.json) describes it.
 

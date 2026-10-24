@@ -52,6 +52,12 @@ a { color: var(--accent); }
 .bar .meta { color: var(--faint); white-space: nowrap; font-size: 12px; min-width: 0; max-width: 40%; overflow: hidden; text-overflow: ellipsis; }
 .bar .specs { white-space: nowrap; font-size: 12px; color: var(--faint); }
 .bar .specs a { color: var(--muted); }
+.examples { max-width: 1440px; margin: 0 auto; padding: 10px 16px 0; display: flex; flex-wrap: wrap; align-items: center; gap: 6px 8px; font-size: 12px; color: var(--faint); min-width: 0; }
+.examples .pill { display: inline-flex; align-items: center; gap: 6px; max-width: 100%; font: 500 12px var(--sans); line-height: 1; padding: 5px 10px; border-radius: 999px; border: 1px solid var(--line2); background: transparent; color: var(--muted); cursor: pointer; }
+.examples .pill:hover, .examples .pill:focus-visible { border-color: var(--accent); color: var(--fg); }
+.examples .pill span { max-width: 36ch; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.examples .pill small { font-size: 11px; font-weight: 400; color: var(--faint); white-space: nowrap; }
+@media (max-width: 560px) { .examples .pill span { max-width: 22ch; } }
 @media (max-width: 700px) { .bar .specs { order: 4; } .bar .meta { order: 5; } }
 input:focus-visible, button:focus-visible, a:focus-visible, summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
 @media (max-width: 700px) { .bar form { flex-basis: 100%; order: 3; } }
@@ -224,6 +230,11 @@ posthog.init(PH_KEY, { api_host: PH_HOST, persistence: "memory", person_profiles
   <span class="meta" id="meta"></span>
   <nav class="specs" aria-label="Specs"><a href="https://ogp.me/" target="_blank" rel="noopener">Open Graph spec</a> · <a href="https://ogp.me/#structured" target="_blank" rel="noopener">og:video</a> · <a href="/llms.txt">llms.txt</a> · <a href="https://github.com/twidtwid/checkmyog" data-track="github_click" data-track-to="nav">GitHub</a></nav>
 </div></header>
+<div class="examples" role="group" aria-label="Examples">Examples:
+    <button type="button" class="pill" data-example="spalterdigital" data-url="https://spalterdigital.com/"><span>spalterdigital.com</span><small>og:video</small></button>
+    <button type="button" class="pill" data-example="longdomain" data-url="https://thisisaridiculouslylongdomainnamemadeonlytotestyourlinkpreviews.international/"><span>thisisaridiculouslylongdomainnamemadeonlytotestyourlinkpreviews.international</span><small>77 characters</small></button>
+    <button type="button" class="pill" data-example="emoji" data-url="https://xn--i-7iq.ws/"><span>i❤.ws</span><small>emoji domain</small></button>
+</div>
 
 <main class="page">
   <div id="err" class="err" role="alert" hidden></div>
@@ -616,6 +627,9 @@ async function run(url, trigger) {
 fetch("support.json").then((r) => r.json()).then((d) => { support = d; drawPlatforms(); })
   .catch(() => { $("plat").replaceChildren(el("tr", {}, [el("td", { colSpan: 4, textContent: "Support list unavailable." })])); });
 $("f").addEventListener("submit", (e) => { e.preventDefault(); run($("u").value.trim(), "form"); });
+document.querySelectorAll(".pill[data-url]").forEach((b) => b.addEventListener("click", () => {
+  $("u").value = b.dataset.url; track("example_click", { example: b.dataset.example, url: b.dataset.url }); run(b.dataset.url, "example");
+}));
 const q = new URLSearchParams(location.search).get("url");
 if (q) $("u").value = q;
 run($("u").value.trim(), q ? "link" : "default");
