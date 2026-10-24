@@ -152,6 +152,26 @@ class EndToEnd(unittest.TestCase):
             self.assertIn(server.PUBLIC_URL, body, path)
         json.loads(self.get("/openapi.json")[2])
 
+    def test_static_range(self):
+        size = os.path.getsize(os.path.join(server.ROOT, "og.mp4"))
+
+        def fetch(rng):
+            req = urllib.request.Request(self.base + "/og.mp4?v=1", headers={"Range": rng})
+            try:
+                with urllib.request.urlopen(req, timeout=10) as r:
+                    return r.status, r.headers, r.read()
+            except urllib.error.HTTPError as e:
+                return e.code, e.headers, e.read()
+        code, h, body = fetch("bytes=0-1023")
+        self.assertEqual((code, h["Content-Range"], len(body), h["Content-Type"]),
+                         (206, f"bytes 0-1023/{size}", 1024, "video/mp4"))
+        self.assertEqual(body[4:8], b"ftyp")
+        code, h, body = fetch("bytes=-100")
+        self.assertEqual((code, h["Content-Range"], len(body)), (206, f"bytes {size - 100}-{size - 1}/{size}", 100))
+        self.assertEqual(fetch(f"bytes={size}-")[0], 416)
+        code, h, body = fetch("")
+        self.assertEqual((code, h["Accept-Ranges"], len(body)), (200, "bytes", size))
+
     def test_healthz_and_static(self):
         self.assertEqual(self.get("/healthz")[:1], (200,))
         code, ctype, _ = self.get("/support.json")
