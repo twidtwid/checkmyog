@@ -5,14 +5,14 @@
   {
    "platform": "iMessage",
    "status": "plays",
-   "note": "Autoplays the MP4 muted, looping. With autoplay off or Reduce Motion: poster with a play button. Apple's guideline: icon, image and video under 10 MB together. Device-tested 24 Oct 2026.",
+   "note": "Autoplays the MP4 muted, looping. With autoplay off or Reduce Motion: poster with a play button. Apple's guideline: icon, image and video under 10 MB together. Device-tested 24 Oct 2026. Without og:image: a text bubble with the title, the domain and the site icon (seen 24 Oct 2026).",
    "source": "https://developer.apple.com/documentation/technotes/tn3156-create-rich-previews-for-messages",
    "source_date": "2024-04"
   },
   {
    "platform": "Discord",
    "status": "plays",
-   "note": "Inline player with a play button; does not autoplay. Device-tested 24 Oct 2026 on the Mac and iOS clients with a plain og:type website page and a direct MP4. Discord's docs only describe og:type video.* or twitter:card player; neither was needed.",
+   "note": "Inline player with a play button; does not autoplay. Device-tested 24 Oct 2026 on the Mac and iOS clients with a plain og:type website page and a direct MP4. Discord's docs only describe og:type video.* or twitter:card player; neither was needed. Without any og: or twitter: tags: no embed at all, just the link (device-tested 24 Oct 2026, Mac and iOS, on a page with only a <title> and meta description).",
    "source": "https://docs.discord.com/developers/link-previews/overview",
    "source_date": "n.d."
   },
@@ -26,7 +26,7 @@
   {
    "platform": "X (Twitter)",
    "status": "poster",
-   "note": "Link cards show og:image. The viral og:video posts were iMessage screen recordings.",
+   "note": "Link cards show og:image. The viral og:video posts were iMessage screen recordings. Without og:image: a small summary card; without any og: or twitter: tags: no card.",
    "source": "https://x.com/pfista/status/2113599976714743874",
    "source_date": "2026-10"
   },
@@ -82,7 +82,7 @@
   {
    "platform": "Facebook",
    "status": "poster",
-   "note": "Shows og:image. Tested 24 Oct; docs say an MP4 is only 'eligible' for inline play.",
+   "note": "Shows og:image. Tested 24 Oct; docs say an MP4 is only 'eligible' for inline play. Without og:image: a text card with the domain and title (Sharing Debugger, 24 Oct 2026).",
    "source": "https://developers.facebook.com/documentation/sharing/webmasters",
    "source_date": "n.d."
   }

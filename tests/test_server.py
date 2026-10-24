@@ -44,9 +44,11 @@ class Parsing(unittest.TestCase):
 
     def test_meta_parser(self):
         p = server.Meta()
-        p.feed('<title> Hi </title><meta property="og:title" content="T"><meta name="twitter:card" content="summary_large_image">')
+        p.feed('<title> Hi </title><meta property="og:title" content="T"><meta name="twitter:card" content="summary_large_image">'
+               '<link rel="shortcut icon" href="/favicon.ico"><link rel="apple-touch-icon" href="/touch.png">')
         self.assertEqual(p.tags, [("og:title", "T"), ("twitter:card", "summary_large_image")])
         self.assertEqual(p.title.strip(), "Hi")
+        self.assertEqual(p.icons, [("icon", "/favicon.ico"), ("apple-touch-icon", "/touch.png")])
 
 
 class Refusals(unittest.TestCase):
@@ -96,6 +98,7 @@ class Fixture(BaseHTTPRequestHandler):
             body = (f'<html><head><title>Fixture</title><meta property="og:title" content="Fixture page">'
                     f'<meta property="og:image" content="http://127.0.0.1:{port}/og.png">'
                     f'<meta property="og:image:alt" content="A card"><meta name="twitter:card" content="summary_large_image">'
+                    f'<link rel="icon" href="/favicon.ico"><link rel="apple-touch-icon" href="/touch.png">'
                     f'</head></html>').encode()
             ctype = "text/html"
         self.send_response(200)
@@ -144,6 +147,8 @@ class EndToEnd(unittest.TestCase):
         self.assertEqual(code, 200)
         r = json.loads(body)
         self.assertEqual(r["card"]["title"], "Fixture page")
+        self.assertEqual(r["card"]["og_tags"], 4)
+        self.assertEqual(r["card"]["icon"], f"http://127.0.0.1:{self.port}/touch.png")
         self.assertEqual(r["poster"], {"format": "png", "width": 1200, "height": 630, "bytes": len(PNG_1200x630)})
         self.assertEqual(r["summary"]["everywhere_else"], "poster")
         self.assertEqual(r["summary"]["video_plays_in"], [])
