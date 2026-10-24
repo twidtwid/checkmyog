@@ -203,6 +203,28 @@ class EndToEnd(unittest.TestCase):
         code, ctype, _ = self.get("/support.json")
         self.assertEqual((code, ctype), (200, "application/json"))
 
+    def raw(self, path, method="GET", headers=None):
+        req = urllib.request.Request(self.base + path, method=method, headers=headers or {})
+        try:
+            with urllib.request.urlopen(req, timeout=10) as r:
+                return r.status, r.headers, r.read()
+        except urllib.error.HTTPError as e:
+            return e.code, e.headers, e.read()
+
+    def test_head_is_get_without_the_body(self):
+        """Templates, endpoints, static files and 404s alike: same status and
+        headers as GET, Content-Length of the real body, nothing after the headers."""
+        for path in ("/", "/healthz", "/api/stats", "/llms.txt", "/support.json", "/og.mp4", "/nope"):
+            with self.subTest(path=path):
+                code, h, body = self.raw(path, "HEAD")
+                gcode, gh, gbody = self.raw(path)
+                self.assertEqual((code, body), (gcode, b""))
+                self.assertEqual(h.get("Content-Type"), gh.get("Content-Type"))
+                self.assertEqual(h.get("Content-Length"), str(len(gbody)))
+        code, h, body = self.raw(f"/api/inspect?url=http://127.0.0.1:{self.port}/", "HEAD")
+        self.assertEqual((code, h.get("Content-Type"), body), (200, "application/json", b""))
+        self.assertEqual(self.raw("/api/inspect", "OPTIONS")[1].get("Access-Control-Allow-Methods"), "GET, HEAD, OPTIONS")
+
 
 class Analytics(unittest.TestCase):
     def test_track_posts_event_and_hashes_visitor(self):

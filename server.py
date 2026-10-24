@@ -279,8 +279,9 @@ def inspect(url: str) -> dict:
         size = len(vbody)
         checks.append(check(card["discord_plays"], "Discord will play it (og:type video.* or twitter:card player)",
                             f"og:type {card['og_type'] or 'missing'}, twitter:card {card['twitter_card'] or 'missing'}"))
-        checks.append(check(not trunc and size <= 10 * 1024 * 1024, "iMessage size limit (≤ 10 MB)",
-                            f"{size / 1024:,.0f} KB" + (" (over the 40 MB read cap)" if trunc else "")))
+        checks.append(check(not trunc and size <= 10 * 1024 * 1024, "iMessage size guideline (video ≤ 10 MB)",
+                            f"{size / 1024:,.0f} KB" + (" (over the 40 MB read cap)" if trunc else "")
+                            + "; Apple's 10 MB covers icon, image and video together"))
         boxes = mp4_boxes(vbody[:1024 * 1024] if not trunc else vbody)
         fast = "moov" in boxes and "mdat" in boxes and boxes.index("moov") < boxes.index("mdat")
         checks.append(check(fast, "Faststart (moov before mdat)", " → ".join(boxes[:6])))
@@ -314,7 +315,7 @@ def inspect(url: str) -> dict:
                                 "Fallback: poster is PNG, JPEG, GIF or WebP", fmt))
             checks.append(check(iw >= 600 and abs(iw / ih_ - 1.91) < 0.05,
                                 "Fallback: poster is a large card (≥ 600 px wide, 1.91:1)",
-                                f"{iw}×{ih_} ({iw / ih_:.2f}:1)"))
+                                f"{iw}×{ih_} ({iw / ih_:.2f}:1)" + ("" if iw >= 900 else "; Apple suggests 900 or more for Messages")))
             tw, th = first(tags, "og:image:width"), first(tags, "og:image:height")
             if tw and th:
                 checks.append(check(str(iw) == tw and str(ih_) == th,
@@ -517,7 +518,7 @@ class Handler(SimpleHTTPRequestHandler):
 
     def do_OPTIONS(self):
         self.send_response(204)
-        self.send_header("Access-Control-Allow-Methods", "GET, OPTIONS")
+        self.send_header("Access-Control-Allow-Methods", "GET, HEAD, OPTIONS")
         self.send_header("Access-Control-Allow-Headers", "*")
         self.end_headers()
 
@@ -527,7 +528,8 @@ class Handler(SimpleHTTPRequestHandler):
         self.send_header("Content-Type", ctype)
         self.send_header("Content-Length", str(len(body)))
         self.end_headers()
-        self.wfile.write(body)
+        if self.command != "HEAD":
+            self.wfile.write(body)
 
     def _json(self, code, obj):
         body = json.dumps(obj).encode()
@@ -535,7 +537,14 @@ class Handler(SimpleHTTPRequestHandler):
         self.send_header("Content-Type", "application/json")
         self.send_header("Content-Length", str(len(body)))
         self.end_headers()
-        self.wfile.write(body)
+        if self.command != "HEAD":
+            self.wfile.write(body)
+
+    def do_HEAD(self):
+        """GET's routing, status and headers without the body. The inherited
+        do_HEAD only knows static files: it 404'd /healthz and the API, and
+        answered / with the length of the unfilled template."""
+        self.do_GET()
 
     def do_GET(self):
         u = urlsplit(self.path)
@@ -548,7 +557,7 @@ class Handler(SimpleHTTPRequestHandler):
         if u.path == "/api/stats":
             return self._json(200, {"checks": _checks})
         if u.path not in ("/api/inspect", "/api/check"):
-            return super().do_GET()
+            return super().do_HEAD() if self.command == "HEAD" else super().do_GET()
         client = (CLIENT_IP_HEADER and self.headers.get(CLIENT_IP_HEADER)) or self.client_address[0]
         now = time.time()
         with _lock:
