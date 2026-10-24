@@ -568,11 +568,13 @@ class Handler(SimpleHTTPRequestHandler):
         ua = self.headers.get("User-Agent") or ""
         props = {"url": url, "domain": urlsplit(url if "://" in url else "https://" + url).hostname,
                  "format": "md" if md else "json",
-                 "via": "web" if self.headers.get("X-Checkmyog-Client") == "web" else "api"}
+                 "via": "web" if self.headers.get("X-Checkmyog-Client") == "web" else "api",
+                 "trigger": self.headers.get("X-Checkmyog-Trigger") or "api"}
         t0 = time.monotonic()
         try:
             r = inspect(url)
-            r["total_checks"] = count_check()
+            # The page checks its own URL on load; only checks someone asked for count.
+            r["total_checks"] = _checks if self.headers.get("X-Checkmyog-Trigger") == "default" else count_check()
             self._text(200, to_markdown(r)) if md else self._json(200, r)
             sm = r["summary"]
             props.update(status=200, final_url=r["final_url"], video_plays_in=sm["video_plays_in"],

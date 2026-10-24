@@ -186,6 +186,10 @@ class EndToEnd(unittest.TestCase):
                 self.assertEqual(r["total_checks"], 42)
                 self.assertEqual(self.get("/api/inspect?url=http://10.0.0.1/")[0], 400)   # refused: not counted
                 self.assertEqual(self.get("/api/inspect")[0], 400)
+                req = urllib.request.Request(f"{self.base}/api/inspect?url=http://127.0.0.1:{self.port}/",
+                                             headers={"X-Checkmyog-Trigger": "default"})
+                with urllib.request.urlopen(req, timeout=10) as resp:      # the page's own load-time check
+                    self.assertEqual(json.loads(resp.read())["total_checks"], 42)
                 self.assertEqual(json.loads(self.get("/api/stats")[2]), {"checks": 42})
                 server._checks = 0
                 server.load_checks()                         # a restart reads the file back

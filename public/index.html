@@ -529,7 +529,7 @@ async function run(url, trigger) {
   $("go").disabled = true; $("go").textContent = "Checking…"; $("err").hidden = true; $("meta").textContent = "";
   const t0 = performance.now();
   try {
-    const r = await fetch("/api/inspect?url=" + encodeURIComponent(url), { headers: { "X-Checkmyog-Client": "web" } });
+    const r = await fetch("/api/inspect?url=" + encodeURIComponent(url), { headers: { "X-Checkmyog-Client": "web", "X-Checkmyog-Trigger": trigger } });
     const d = await r.json();
     showCount(d.total_checks);
     if (!r.ok) throw Object.assign(new Error(d.error || `HTTP ${r.status}`), { status: r.status });
