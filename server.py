@@ -5,6 +5,7 @@ the cards.
 
 GET /                    the checker page (public/index.html)
 GET /api/inspect?url=…   JSON (or Markdown with &format=md): tags, checks, verdicts
+GET /api/stats           {"checks": N}, successful checks so far
 GET /healthz             liveness for the host
 
 Standard library only, plus the ffprobe binary (from ffmpeg) for video facts.
@@ -18,7 +19,8 @@ rate limit.
 Environment: PORT (default 8080), POSTHOG_KEY and POSTHOG_HOST (optional
 analytics; unset means none), PUBLIC_URL (the base URL written into the page,
 llms.txt and openapi.json; default https://checkmyog.com), CLIENT_IP_HEADER
-(the proxy header that carries the client IP; default Fly-Client-IP).
+(the proxy header that carries the client IP; default Fly-Client-IP),
+COUNTER_PATH (file that keeps the checks total across restarts; unset = memory).
 
 SIGTERM shuts down cleanly (exit 0).
 """
@@ -49,6 +51,8 @@ PUBLIC_URL = os.environ.get("PUBLIC_URL", "https://checkmyog.com").rstrip("/")
 CLIENT_IP_HEADER = os.environ.get("CLIENT_IP_HEADER", "Fly-Client-IP")
 POSTHOG_KEY = os.environ.get("POSTHOG_KEY", "")
 POSTHOG_HOST = os.environ.get("POSTHOG_HOST", "https://us.i.posthog.com").rstrip("/")
+# Where the "URLs checked" total is kept across restarts; empty = in memory only.
+COUNTER_PATH = os.environ.get("COUNTER_PATH", "")
 UA = {"x": "Twitterbot/1.0",
       "facebook": "facebookexternalhit/1.1 (+http://www.facebook.com/externalhit_uatext.php)"}
 HTML_CAP = 2 * 1024 * 1024
@@ -58,6 +62,7 @@ ALLOWED_PORTS = (80, 443)
 RATE = (20, 60)            # requests per window seconds, per client IP
 _hits: dict[str, list[float]] = {}
 _lock = threading.Lock()
+_checks = 0
 
 
 class Refused(Exception):
@@ -334,6 +339,31 @@ def inspect(url: str) -> dict:
     return result
 
 
+def load_checks() -> None:
+    global _checks
+    try:
+        with open(COUNTER_PATH, encoding="utf-8") as f:
+            _checks = int(f.read().strip() or 0)
+    except (OSError, ValueError):
+        _checks = 0
+
+
+def count_check() -> int:
+    """Add one successful check to the total and return it. The file is
+    replaced atomically, so a crash mid-write never leaves it half written."""
+    global _checks
+    with _lock:
+        _checks += 1
+        if COUNTER_PATH:
+            try:
+                with open(COUNTER_PATH + ".tmp", "w", encoding="utf-8") as f:
+                    f.write(str(_checks))
+                os.replace(COUNTER_PATH + ".tmp", COUNTER_PATH)
+            except OSError:
+                pass
+        return _checks
+
+
 def track(event: str, client: str, ua: str, props: dict) -> None:
     """Send one server-side event to PostHog, in the background, never raising.
     Covers API callers that never run the page's JavaScript. The distinct_id is
@@ -515,6 +545,8 @@ class Handler(SimpleHTTPRequestHandler):
             return self._template("llms.txt", "text/markdown; charset=utf-8")
         if u.path in self.TEMPLATES:
             return self._template(*self.TEMPLATES[u.path])
+        if u.path == "/api/stats":
+            return self._json(200, {"checks": _checks})
         if u.path not in ("/api/inspect", "/api/check"):
             return super().do_GET()
         client = (CLIENT_IP_HEADER and self.headers.get(CLIENT_IP_HEADER)) or self.client_address[0]
@@ -536,10 +568,13 @@ class Handler(SimpleHTTPRequestHandler):
         ua = self.headers.get("User-Agent") or ""
         props = {"url": url, "domain": urlsplit(url if "://" in url else "https://" + url).hostname,
                  "format": "md" if md else "json",
-                 "via": "web" if self.headers.get("X-Checkmyog-Client") == "web" else "api"}
+                 "via": "web" if self.headers.get("X-Checkmyog-Client") == "web" else "api",
+                 "trigger": self.headers.get("X-Checkmyog-Trigger") or "api"}
         t0 = time.monotonic()
         try:
             r = inspect(url)
+            # The page checks its own URL on load; only checks someone asked for count.
+            r["total_checks"] = _checks if self.headers.get("X-Checkmyog-Trigger") == "default" else count_check()
             self._text(200, to_markdown(r)) if md else self._json(200, r)
             sm = r["summary"]
             props.update(status=200, final_url=r["final_url"], video_plays_in=sm["video_plays_in"],
@@ -556,6 +591,7 @@ class Handler(SimpleHTTPRequestHandler):
 
 
 if __name__ == "__main__":
+    load_checks()
     server = ThreadingHTTPServer(("0.0.0.0", PORT), Handler)
     signal.signal(signal.SIGTERM, lambda *_: threading.Thread(target=server.shutdown, daemon=True).start())
     print(f"Serving :{PORT} from {ROOT}", flush=True)
