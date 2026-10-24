@@ -24,6 +24,7 @@ SIGTERM shuts down cleanly (exit 0).
 """
 import hashlib
 import http.client
+import io
 import ipaddress
 import json
 import os
@@ -435,7 +436,33 @@ class Handler(SimpleHTTPRequestHandler):
 
     extensions_map = {**SimpleHTTPRequestHandler.extensions_map,
                       ".txt": "text/plain; charset=utf-8", ".md": "text/markdown; charset=utf-8",
-                      ".json": "application/json"}
+                      ".json": "application/json", ".mp4": "video/mp4"}
+
+    def send_head(self):
+        """Static files, plus the single byte range SimpleHTTPRequestHandler
+        ignores. The site's own og:video has to pass the Range check it runs."""
+        path = self.translate_path(self.path)
+        self._static = os.path.isfile(path)
+        m = re.fullmatch(r"bytes=(\d*)-(\d*)", (self.headers.get("Range") or "").strip())
+        if not (self._static and m and any(m.groups())):
+            return super().send_head()
+        size, (a, b) = os.path.getsize(path), m.groups()
+        start, end = (int(a), min(int(b or size - 1), size - 1)) if a else (max(size - int(b), 0), size - 1)
+        if start > end:
+            self.send_response(416)
+            self.send_header("Content-Range", f"bytes */{size}")
+            self.send_header("Content-Length", "0")
+            self.end_headers()
+            return None
+        with open(path, "rb") as f:
+            f.seek(start)
+            body = f.read(end - start + 1)
+        self.send_response(206)
+        self.send_header("Content-Type", self.guess_type(path))
+        self.send_header("Content-Range", f"bytes {start}-{end}/{size}")
+        self.send_header("Content-Length", str(len(body)))
+        self.end_headers()
+        return io.BytesIO(body)
 
     # Files served with {{PUBLIC_URL}}, {{POSTHOG_KEY}} and {{POSTHOG_HOST}} filled in.
     TEMPLATES = {"/": ("index.html", "text/html; charset=utf-8"),
@@ -452,6 +479,8 @@ class Handler(SimpleHTTPRequestHandler):
 
     def end_headers(self):
         self.send_header("Cache-Control", "no-cache")
+        if getattr(self, "_static", False):
+            self.send_header("Accept-Ranges", "bytes")
         # Agents and other sites may call the API and read llms.txt from a browser.
         self.send_header("Access-Control-Allow-Origin", "*")
         super().end_headers()
