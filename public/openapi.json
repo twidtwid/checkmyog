@@ -4,6 +4,13 @@
     "description": "Check a page's Open Graph link preview as crawlers see it, including og:video playback support per app. See /llms.txt."},
   "servers": [{"url": "{{PUBLIC_URL}}"}],
   "paths": {
+    "/api/stats": {
+      "get": {
+        "operationId": "stats",
+        "summary": "Number of successful checks so far",
+        "responses": {"200": {"description": "The total", "content": {"application/json": {"schema": {"type": "object", "properties": {"checks": {"type": "integer"}}}}}}}
+      }
+    },
     "/api/inspect": {
       "get": {
         "operationId": "inspectUrl",

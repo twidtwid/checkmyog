@@ -14,6 +14,8 @@ No key, no sign-in. CORS is open. Rate limit: 20 checks per minute per client IP
 - Human page with players and app previews:
   `{{PUBLIC_URL}}/?url=https://example.com/`
 
+`{{PUBLIC_URL}}/api/stats` returns `{"checks": N}`, the number of successful checks so far; each JSON report also carries it as `total_checks`.
+
 URL-encode the `url` parameter if it has its own query string. `/api/check` is an alias of `/api/inspect`. `Accept: text/markdown` also selects the Markdown report.
 
 ## JSON response, the fields that matter

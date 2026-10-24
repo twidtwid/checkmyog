@@ -56,7 +56,10 @@ a { color: var(--accent); }
 input:focus-visible, button:focus-visible, a:focus-visible, summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
 @media (max-width: 700px) { .bar form { flex-basis: 100%; order: 3; } }
 .bar-in { flex-wrap: wrap; row-gap: 8px; }
-.bar-top { flex-basis: 100%; display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+.bar-top { flex-basis: 100%; display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 10px; }
+.bar-top .by { justify-self: end; }
+.count { font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; white-space: nowrap; }
+@media (max-width: 520px) { .bar-top { grid-template-columns: 1fr auto; row-gap: 2px; } .count { grid-row: 2; grid-column: 1 / -1; } }
 .by { display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; font-size: 12px; color: var(--muted); text-decoration: none; }
 .by svg { width: 16px; height: 16px; flex: none; }
 .by:hover span { text-decoration: underline; }
@@ -191,6 +194,7 @@ posthog.init(PH_KEY, { api_host: PH_HOST, persistence: "memory", person_profiles
 <body>
 <header class="bar"><div class="bar-in">
   <div class="bar-top"><h1>Check My OG</h1>
+  <span class="count" id="count" hidden></span>
   <a class="by" href="https://daywardai.com/?utm_source=checkmyog" data-track="dayward_click"><svg viewBox="0 0 16 16" aria-hidden="true"><defs><clipPath id="dwm"><circle cx="8" cy="8" r="8"/></clipPath></defs><g clip-path="url(#dwm)"><rect width="16" height="10" fill="#2443C4"/><circle cx="8" cy="9" r="5" fill="#E06A42"/><rect y="8" width="16" height="1" fill="#2443C4"/><rect y="10" width="16" height="6" fill="#7A95EE"/></g></svg><span>Made by Dayward AI</span></a></div>
   <form id="f">
     <label for="u" hidden>Page URL</label>
@@ -511,6 +515,15 @@ function browserChecks(c, seq) {
 }
 
 // ---------- run ----------
+// "N URLs checked": every successful check anywhere, from /api/stats and each check's response.
+function showCount(n) {
+  if (!(n > (showCount.n || 0))) return;
+  showCount.n = n;
+  $("count").textContent = `${n.toLocaleString()} URL${n === 1 ? "" : "s"} checked`;
+  $("count").hidden = false;
+}
+fetch("/api/stats").then((r) => r.json()).then((d) => showCount(d.checks)).catch(() => {});
+
 async function run(url, trigger) {
   const seq = (run.n = (run.n || 0) + 1);
   $("go").disabled = true; $("go").textContent = "Checking…"; $("err").hidden = true; $("meta").textContent = "";
@@ -518,6 +531,7 @@ async function run(url, trigger) {
   try {
     const r = await fetch("/api/inspect?url=" + encodeURIComponent(url), { headers: { "X-Checkmyog-Client": "web" } });
     const d = await r.json();
+    showCount(d.total_checks);
     if (!r.ok) throw Object.assign(new Error(d.error || `HTTP ${r.status}`), { status: r.status });
     if (seq !== run.n) return;
     const ms = Math.round(performance.now() - t0);
