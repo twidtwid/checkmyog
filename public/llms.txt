@@ -22,9 +22,9 @@ URL-encode the `url` parameter if it has its own query string. `/api/check` is a
 
 - `summary.video_plays_in`: apps that will play og:video for this URL (today `["iMessage", "Discord"]` for a good MP4, or `[]`).
 - `summary.everywhere_else`: `"poster"` (og:image shown) or `"none"` (text-only card).
-- `summary.checks_failed`: labels of failed checks; empty means everything passed.
+- `summary.checks_failed`: labels of failed checks; empty means everything passed. A page without og:video is not failed for it: that row is a note (`ok: null`, `info: true`) and counts in neither direction.
 - `platforms[]`: `{platform, result: "plays"|"poster"|"none", note, source}` per app.
-- `checks[]`: `{ok, group, key, label, detail}`; groups are `page`, `tags`, `video`, `platform`, `poster`. `platform` rows are facts (YES/NO), not errors.
+- `checks[]`: `{ok, info, group, key, label, detail}`; groups are `page`, `tags`, `video`, `platform`, `poster`. `platform` rows are facts (YES/NO), not errors; `info` rows are notes (NOTE in the Markdown report).
 - `card`: resolved title, description, image, video, og:type, twitter:card, domain.
 - `video`: ffprobe facts (codec, profile, pix_fmt, width, height, fps, duration, audio, bytes).
 - `poster`: format, width, height, bytes of og:image.
@@ -38,6 +38,7 @@ Errors are JSON `{"error": "..."}` with status 400 (bad or refused URL: private 
 - Discord plays it too, as an inline player with a play button; it never autoplays. Device-tested 24 Oct 2026 on the Mac and iOS clients with a plain og:type website page and a direct MP4. Discord's docs only describe og:type video.* or twitter:card player; neither was needed, so do not tell a site to declare og:type video on a normal page: it misdescribes the page to every other consumer.
 - X (Twitter), Facebook, Telegram, WhatsApp, Slack, LinkedIn, Bluesky, Mastodon, Signal and Matrix (Element) show og:image. Facebook and Telegram were tested on devices; the rest follow each platform's own documentation (sources in support.json). The viral "og:video works on X" posts were screen recordings of iMessage.
 - So og:image is what most people see: it must exist, be 1.91:1 and at least 600 px wide (Apple suggests 900 or more), and match the video's first frame if there is a video.
+- og:video is optional. Most pages have none, only iMessage and Discord ever play one, and a page without it previews fine everywhere, so its absence is reported as a note, not a failure. Add one only if an autoplaying loop in Messages is worth the work.
 
 ## Advice an agent should give
 

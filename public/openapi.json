@@ -33,7 +33,9 @@
   "components": {"schemas": {
     "Error": {"type": "object", "properties": {"error": {"type": "string"}}},
     "Check": {"type": "object", "properties": {
-      "ok": {"type": "boolean"}, "group": {"type": "string", "enum": ["page", "tags", "video", "platform", "poster", "other"]},
+      "ok": {"type": ["boolean", "null"], "description": "true passed, false failed; null on a note (info true), which counts as neither"},
+      "info": {"type": "boolean", "description": "true for a note such as og:video (optional) on a page without video"},
+      "group": {"type": "string", "enum": ["page", "tags", "video", "platform", "poster", "other"]},
       "key": {"type": "string"}, "label": {"type": "string"}, "detail": {"type": "string"}}},
     "Platform": {"type": "object", "properties": {
       "platform": {"type": "string"}, "result": {"type": "string", "enum": ["plays", "poster", "none"]},

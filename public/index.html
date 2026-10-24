@@ -94,7 +94,7 @@ tr.fail td.val { color: var(--fg); }
 tbody tr:not(.grp):hover td { background: var(--hover); }
 tbody tr.fail:hover td { background: var(--bad-hover); }
 .st { font-weight: 700; font-size: 11px; letter-spacing: .03em; }
-.st.ok, .st.yes { color: var(--ok); } .st.bad { color: var(--bad); } .st.wait { color: var(--faint); } .st.no { color: var(--warn); }
+.st.ok, .st.yes { color: var(--ok); } .st.bad { color: var(--bad); } .st.wait { color: var(--faint); } .st.no { color: var(--warn); } .st.note { color: var(--muted); }
 .kv td { font-family: var(--mono); font-size: 12px; overflow-wrap: anywhere; }
 .kv td:first-child { width: 30%; color: var(--muted); font-family: var(--sans); }
 
@@ -479,20 +479,20 @@ function drawChecks() {
     const bad = g === "platform" ? 0 : items.filter((x) => x.ok === false).length;
     rows.push(el("tr", { className: "grp" }, [el("td", { colSpan: 3, textContent: `${GROUP_NAMES[g]}${bad ? ` · ${bad} failed` : ""}` })]));
     for (const x of items) {
-      // Platform rules are facts about this page, not errors: YES/NO.
+      // Platform rules are facts about this page, not errors: YES/NO. A note (no og:video) is neither.
       const rule = g === "platform";
-      const st = x.ok === null ? "wait" : rule ? (x.ok ? "yes" : "no") : x.ok ? "ok" : "bad";
+      const st = x.info ? "note" : x.ok === null ? "wait" : rule ? (x.ok ? "yes" : "no") : x.ok ? "ok" : "bad";
       const stripped = x.label.startsWith("Fallback: ");
       const label = stripped ? x.label[10].toUpperCase() + x.label.slice(11) : x.label;
       rows.push(el("tr", { className: st === "bad" ? "fail" : "" }, [
-        el("td", { className: "st " + st, textContent: { wait: "…", ok: "PASS", bad: "FAIL", yes: "YES", no: "NO" }[st] }),
+        el("td", { className: "st " + st, textContent: { wait: "…", ok: "PASS", bad: "FAIL", yes: "YES", no: "NO", note: "NOTE" }[st] }),
         el("td", { textContent: label }),
         el("td", { className: "val", textContent: x.detail || "" }),
       ]));
     }
   }
   $("checks").replaceChildren(...rows);
-  const scored = all.filter((x) => x.group !== "platform");
+  const scored = all.filter((x) => x.group !== "platform" && !x.info);
   const done = scored.filter((x) => x.ok !== null), bad = done.filter((x) => !x.ok).length;
   $("checks-sum").textContent = `${done.length - bad} of ${scored.length} pass${bad ? ` · ${bad} fail` : ""}`;
 }
@@ -500,7 +500,7 @@ function drawChecks() {
 function drawVerdict() {
   const v = verdicts(), names = { imessage: "iMessage", discord: "Discord" };
   const plays = Object.keys(names).filter((k) => v[k] === "plays").map((k) => names[k]);
-  const bad = current.checks.filter((x) => !x.ok && x.group !== "platform").length;
+  const bad = current.checks.filter((x) => x.ok === false && x.group !== "platform").length;
   $("verdict").replaceChildren(
     el("span", {}, [el("b", { textContent: "Video plays in: " }), plays.length ? plays.join(", ") : "none"]),
     el("span", {}, [el("b", { textContent: "Everywhere else: " }), v._poster === "poster" ? "the poster (og:image)" : "no image"]),
@@ -528,11 +528,11 @@ function drawHero() {
     vid.addEventListener("click", () => { vid.paused ? vid.play().catch(() => {}) : vid.pause(); });
     vid.addEventListener("error", () => vb.replaceChildren(el("div", { className: "empty", textContent: "This browser could not play the file" })), { once: true });
     vb.append(vid);
-  } else vb.append(el("div", { className: "empty", textContent: "No og:video on this page" }));
+  } else vb.append(el("div", { className: "empty", textContent: "No og:video on this page (optional)" }));
   const plays = ["iMessage", "Discord"].filter((n) => ver[n.toLowerCase()] === "plays");
   $("hero-v-res").replaceChildren(c.video
     ? el("span", { className: plays.length ? "ok" : "bad", textContent: plays.length ? `Plays in ${plays.join(", ")}` : "Won't play anywhere: see checks" })
-    : el("span", { className: "bad", textContent: "Missing" }));
+    : el("span", { textContent: "None (optional): only iMessage and Discord ever play one" }));
   $("hero-vf").replaceChildren(...(c.video ? [
     el("div", { textContent: v.codec ? `${v.codec} ${v.profile || ""} · ${v.pix_fmt} · ${v.width}×${v.height} · ${v.fps} fps · ${v.duration} s · ${v.audio ? "audio" : "no audio"} · ${kb(v.bytes)}` : "not probed" }),
     el("div", {}, [el("a", { href: c.video, target: "_blank", rel: "noopener", textContent: c.video })])] : []));
@@ -548,13 +548,13 @@ function drawHero() {
 
 // ---------- browser checks ----------
 const within = (ms, fn) => new Promise((res) => { const t = setTimeout(() => res([false, "timed out"]), ms); fn((r) => { clearTimeout(t); res(r); }); });
-function bset(key, label, okv, detail) { browser[key] = { group: "browser", key, label, ok: okv, detail }; if (current) drawChecks(); }
+function bset(key, label, okv, detail, info) { browser[key] = { group: "browser", key, label, ok: okv, detail, info: !!info }; if (current) drawChecks(); }
 function browserChecks(c, seq) {
   const live = () => seq === run.n;
   bset("b-play", "Plays the video", null, "testing");
   bset("b-poster", "Loads the poster", null, "testing");
   bset("b-fall", "Shows the poster when the video fails", null, "testing");
-  if (!c.video) bset("b-play", "Plays the video", false, "no og:video");
+  if (!c.video) bset("b-play", "Plays the video", null, "no og:video to play", true);
   else within(15000, (done) => {
     const v = el("video", { muted: true, preload: "auto" });
     v.addEventListener("loadeddata", () => done([true, `decoded frame 1, ${v.videoWidth}×${v.videoHeight}`]), { once: true });
