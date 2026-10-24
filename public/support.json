@@ -26,7 +26,7 @@
   {
    "platform": "X (Twitter)",
    "status": "poster",
-   "note": "Link cards show og:image. The viral og:video posts were iMessage screen recordings. Without og:image: a small summary card; without any og: or twitter: tags: no card.",
+   "note": "Link cards show og:image. The viral og:video posts were iMessage screen recordings. The large card needs twitter:card=summary_large_image; otherwise a small card with a square thumbnail. Without og:image: the small card with a placeholder; without any og: or twitter: tags: no card. On the large card X overlays the title in a dark strip at the bottom-left of the image and puts the domain under the card as 'From domain' (measured on x.com at desktop and 390 px phone widths, 24 Oct 2026).",
    "source": "https://x.com/pfista/status/2113599976714743874",
    "source_date": "2026-10"
   },
