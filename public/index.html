@@ -118,19 +118,25 @@ tbody tr.fail:hover td { background: var(--bad-hover); }
 .media { position: relative; aspect-ratio: 1200 / 630; background: var(--bg2); overflow: hidden; }
 .media video, .media img { width: 100%; height: 100%; object-fit: cover; display: block; }
 .media .empty { position: absolute; inset: 0; display: grid; place-items: center; color: var(--faint); }
-/* X: the domain pill X draws over the card image, and what it shows without one. */
-.xcard { border: 1px solid var(--line2); border-radius: 14px; overflow: hidden; }
-.xcard .domain { position: absolute; left: 12px; bottom: 12px; max-width: calc(100% - 24px); background: rgba(0,0,0,.77); color: #fff; font-size: 13px; line-height: 16px; padding: 2px 4px; border-radius: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-/* The pill keeps its size while the card shrinks with the screen, so on a phone it
-   covers more of the image. The dashed zone is its footprint there; sized by sizeXZone(). */
+/* X: the large card is the image with the title in a dark strip at its bottom-left and
+   "From domain" under it; the small card (no og:image, or twitter:card missing or "summary")
+   is a square thumbnail beside the domain, title and description. Measured on x.com at
+   desktop and 390 px phone widths, 24 Oct 2026. */
+.xcard { border: 1px solid var(--line2); border-radius: 16px; overflow: hidden; }
+.xcard .xtitle { position: absolute; left: 12px; bottom: 12px; max-width: calc(100% - 24px); box-sizing: border-box; background: rgba(0,0,0,.77); color: #fff; font-size: 13px; line-height: 16px; font-weight: 400; padding: 0 8px; border-radius: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+/* The strip keeps its size while the card shrinks with the screen, so on a phone it covers
+   more of the image. The dashed zone is its footprint there; sized by sizeXZone(). */
 .xcard .xzone { position: absolute; left: 0; bottom: 0; width: 40%; height: 20%; border: 1.5px dashed rgba(255,255,255,.75); border-left: 0; border-bottom: 0; box-shadow: 1px -1px 0 rgba(0,0,0,.35); pointer-events: none; }
+.xfrom { color: var(--muted); font-size: 13px; line-height: 16px; margin-top: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .xnote { font-size: 12px; color: var(--faint); margin-top: 4px; }
-.xsum { display: grid; grid-template-columns: 96px minmax(0, 1fr); border: 1px solid var(--line2); border-radius: 14px; overflow: hidden; }
-.xsum .thumb { background: var(--bg2); border-right: 1px solid var(--line2); min-height: 96px; }
+.xsum { display: grid; grid-template-columns: clamp(90px, 28%, 130px) minmax(0, 1fr); border: 1px solid var(--line2); border-radius: 16px; overflow: hidden; }
+.xsum .thumb { position: relative; aspect-ratio: 1 / 1; background: var(--bg2); border-right: 1px solid var(--line2); display: grid; place-items: center; color: var(--faint); overflow: hidden; }
+.xsum .thumb img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block; }
+.xsum .thumb svg { width: 34%; height: 34%; }
 .xsum .txt { padding: 10px 12px; align-self: center; min-width: 0; }
-.xsum .d { color: var(--muted); font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.xsum .t { font-weight: 600; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.xsum .desc { color: var(--muted); font-size: 13px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; overflow-wrap: anywhere; }
+.xsum .d { color: var(--muted); font-size: 13px; line-height: 18px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.xsum .t { font-size: 14px; line-height: 18px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.xsum .desc { color: var(--muted); font-size: 13px; line-height: 18px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; overflow-wrap: anywhere; }
 /* Discord and X build nothing from a page with no og: or twitter: tags: the link is all there is. */
 .bare { color: var(--accent); font-size: 13px; overflow-wrap: anywhere; padding: 6px 0; }
 .dcard { border-left: 4px solid var(--line2); background: var(--bg2); border-radius: 4px; padding: 8px 12px 12px; }
@@ -267,9 +273,10 @@ posthog.init(PH_KEY, { api_host: PH_HOST, persistence: "memory", person_profiles
         <div class="dcard" id="d-card"><div class="site" id="d-site"></div><div class="t" id="d-t"></div><div class="d" id="d-d"></div><div class="media" id="d-media"></div></div>
         <div class="bare" id="d-bare" hidden></div></div>
       <div class="pv"><div class="lab"><b>X (Twitter)</b><span id="x-lab"></span></div>
-        <div class="xcard" id="x-card"><div class="media" id="x-media"><span class="xzone" id="x-zone" aria-hidden="true"></span><span class="domain" id="x-domain"></span></div></div>
-        <div class="xnote" id="x-note">Dashed: the corner X's domain pill covers on a phone</div>
-        <div class="xsum" id="x-sum" hidden><div class="thumb"></div><div class="txt"><div class="d" id="xs-d"></div><div class="t" id="xs-t"></div><div class="desc" id="xs-desc"></div></div></div>
+        <div class="xcard" id="x-card"><div class="media" id="x-media"><span class="xzone" id="x-zone" aria-hidden="true"></span><span class="xtitle" id="x-title"></span></div></div>
+        <div class="xfrom" id="x-from">From <span id="x-domain"></span></div>
+        <div class="xnote" id="x-note">Dashed: the strip X's title covers on a phone</div>
+        <div class="xsum" id="x-sum" hidden><div class="thumb" id="xs-thumb"><svg id="xs-doc" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6zm0 2.5L17.5 8H14V4.5zM8 12h8v1.5H8V12zm0 3.5h8V17H8v-1.5zM8 9h3v1.5H8V9z"/></svg></div><div class="txt"><div class="d" id="xs-d"></div><div class="t" id="xs-t"></div><div class="desc" id="xs-desc"></div></div></div>
         <div class="bare" id="x-bare" hidden></div></div>
       <div class="pv"><div class="lab"><b>Facebook, LinkedIn, Slack, WhatsApp</b><span id="f-lab"></span></div>
         <div class="fbcard" id="f-card"><div class="media" id="f-media"></div><div class="bot"><div class="d" id="f-domain"></div><div class="t" id="f-t"></div></div></div></div>
@@ -385,23 +392,29 @@ function drawPreviews() {
   media($("f-media"), c, false);
   $("i-card").classList.toggle("noimg", noimg);
   $("d-card").classList.toggle("noimg", noimg); $("d-card").hidden = !og; $("d-bare").hidden = og;
-  $("x-card").hidden = $("x-note").hidden = noimg || !og; $("x-sum").hidden = !noimg || !og; $("x-bare").hidden = og;
+  // X: the large card needs twitter:card=summary_large_image (or player); with og:image but no
+  // twitter:card, or twitter:card=summary, X shows the small card with a square thumbnail.
+  const large = !noimg && og && (c.twitter_card === "summary_large_image" || c.twitter_card === "player");
+  $("x-card").hidden = $("x-from").hidden = $("x-note").hidden = !large;
+  $("x-sum").hidden = large || !og; $("x-bare").hidden = og;
+  const th = $("xs-thumb"); th.querySelectorAll("img,.empty").forEach((n) => n.remove()); $("xs-doc").hidden = !noimg;
+  if (!noimg) th.prepend(poster(c));
   $("f-card").classList.toggle("noimg", noimg);
   const lab = (k) => mode === "fallback" ? "og:image (forced)" : v[k] !== "plays" ? "og:image"
     : k === "discord" || mode === "paused" ? "og:video, tap to play" : "og:video";
   $("i-lab").textContent = !noimg ? lab("imessage") : "text" + (c.icon ? " and icon" : "") + (c.title ? "" : ", no title");
   $("d-lab").textContent = !og ? "no og tags: no embed" : noimg ? "text embed" : lab("discord");
-  $("x-lab").textContent = !og ? "no og tags: no card" : noimg ? "small card" : "og:image";
+  $("x-lab").textContent = !og ? "no og tags: no card" : large ? "og:image" : noimg ? "small card, no image" : "small card: no summary_large_image";
   $("f-lab").textContent = noimg ? "text card" : "og:image";
   sizeXZone();
 }
-// X's domain pill keeps its size while the card shrinks with the screen, so on a phone
-// (card about 310 px wide) it covers a bigger share of the image than on a desktop. The
-// dashed zone is the pill's footprint at that width, scaled to this preview: at phone
-// width it hugs the pill, on a wide screen it is the same corner, bigger.
-const X_PHONE_CARD = 310;
+// X's title strip keeps its size while the card shrinks with the screen, so on a phone
+// (image about 306 px wide) it covers a bigger share of the image than on a desktop. The
+// dashed zone is the strip's footprint at that width, scaled to this preview: at phone
+// width it hugs the strip, on a wide screen it is the same corner, bigger.
+const X_PHONE_CARD = 306;
 function sizeXZone() {
-  const m = $("x-media"), p = $("x-domain"), z = $("x-zone");
+  const m = $("x-media"), p = $("x-title"), z = $("x-zone");
   if ($("x-card").hidden || !m.clientWidth) return;
   const s = Math.max(1, m.clientWidth / X_PHONE_CARD);
   z.style.width = Math.min(m.clientWidth, Math.round((p.offsetLeft + p.offsetWidth + 12) * s)) + "px";
@@ -607,7 +620,7 @@ async function run(url, trigger) {
     if (c.icon) { ico.onload = () => $("i-card").classList.add("hasico"); ico.onerror = () => $("i-card").classList.remove("hasico"); ico.src = c.icon; }
     $("d-site").textContent = c.site || c.domain || ""; $("d-t").textContent = c.title || ""; $("d-d").textContent = c.description || "";
     $("d-bare").textContent = url;
-    $("x-domain").textContent = c.domain || "";
+    $("x-domain").textContent = c.domain || ""; $("x-title").textContent = c.title || c.domain || "";
     $("xs-d").textContent = c.domain || ""; $("xs-t").textContent = c.title || ""; $("xs-desc").textContent = c.description || "";
     const shown = d.final_url.replace(/^https?:\/\//, "").replace(/\/$/, "");   // X shows a link as its URL, cut short
     $("x-bare").textContent = shown.length > 30 ? shown.slice(0, 30) + "…" : shown;
