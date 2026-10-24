@@ -1,22 +1,46 @@
 <!doctype html><html><head><meta charset="utf-8">
 <link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@125,700&family=Schibsted+Grotesk:wght@400;500;600&display=block" rel="stylesheet">
 <style>
-html,body{margin:0}
-body{width:1200px;height:630px;background:#15171a;color:#e6e8eb;font-family:"Schibsted Grotesk",sans-serif;position:relative;overflow:hidden}
-.wrap{position:absolute;left:80px;top:78px;right:80px}
-h1{font:700 92px/1 "Archivo",sans-serif;font-stretch:125%;letter-spacing:-.01em;margin:0 0 28px}
-p{font-size:34px;line-height:1.35;color:#a2a8b2;margin:0;max-width:900px}
-.rows{position:absolute;left:80px;bottom:150px;display:flex;gap:14px;font:500 24px "Schibsted Grotesk";}
-.chip{white-space:nowrap;border:1px solid #363b42;border-radius:6px;padding:8px 14px;color:#c9cdd3}
-.chip b{color:#5ccf86;font-weight:600;margin-right:8px}
-.chip.n b{color:#a2a8b2}
-.foot{position:absolute;left:80px;right:80px;bottom:60px;display:flex;justify-content:space-between;align-items:center;font-size:26px;color:#7b818b}
+/* The card is its own og:image: the link preview in the message holds the
+   whole card, which holds the preview again, LEVELS deep. render-og-video.js
+   zooms into it; the .shot rect is the fixed point of that zoom. */
+html,body{margin:0;background:#15171a}
+body{width:1200px;height:630px;overflow:hidden;font-family:"Schibsted Grotesk",sans-serif}
+#cam{width:1200px;height:630px;transform-origin:0 0}
+.lvl{position:absolute;left:0;top:0;width:1200px;height:630px;background:#15171a;color:#e6e8eb;transform-origin:0 0}
+.lvl h1{position:absolute;left:72px;top:70px;margin:0;font:700 56px/1 "Archivo",sans-serif;font-stretch:125%;letter-spacing:-.01em}
+.lvl .line{position:absolute;left:72px;top:150px;margin:0;font-size:36px;line-height:1.25;color:#c3c8cf;width:440px}
+.lvl .foot{position:absolute;left:72px;bottom:124px;display:flex;align-items:center;gap:22px;font-size:24px;color:#7b818b}
 .foot .dom{color:#e6e8eb;font-weight:600}
-.by{display:flex;align-items:center;gap:10px}
-.by svg{width:28px;height:28px}
+.by{display:flex;align-items:center;gap:9px}
+.by svg{width:24px;height:24px}
+/* The conversation */
+.sent{position:absolute;right:60px;top:70px;background:#0A84FF;color:#fff;font-size:25px;padding:11px 20px;border-radius:22px 22px 6px 22px}
+.msg{position:absolute;left:580px;top:140px;width:560px}
+.card{border-radius:18px;overflow:hidden;background:#2c2c2e}
+.shot{position:relative;width:560px;height:294px;overflow:hidden}
+.bar{padding:11px 16px 13px}
+.bar .t{font-size:22px;font-weight:600;color:#f2f2f7}
+.bar .d{font-size:18px;color:#98989f;margin-top:2px}
+.dlv{margin-top:6px;text-align:right;font-size:16px;color:#7b818b;font-weight:500}
 </style></head><body>
-<div class="wrap"><h1>Check My OG</h1>
-<p>See how a link will preview in iMessage, Discord, X and Slack before you share it. Checks the og:image and og:video files, not just the tags.</p></div>
-<div class="rows"><span class="chip"><b>PASS</b>og:image 1200×630</span><span class="chip"><b>PLAYS</b>iMessage</span><span class="chip n"><b>POSTER</b>X, Slack</span></div>
+<template id="t"><div class="lvl">
+<h1>Check My OG</h1>
+<p class="line">Your link preview, previewed.</p>
 <div class="foot"><span class="dom">checkmyog.com</span><span class="by"><svg viewBox="0 0 16 16"><defs><clipPath id="c"><circle cx="8" cy="8" r="8"/></clipPath></defs><g clip-path="url(#c)"><rect width="16" height="10" fill="#2443C4"/><circle cx="8" cy="9" r="5" fill="#E06A42"/><rect y="8" width="16" height="1" fill="#2443C4"/><rect y="10" width="16" height="6" fill="#7A95EE"/></g></svg>Dayward AI</span></div>
+<div class="sent">did the preview work?</div>
+<div class="msg"><div class="card"><div class="shot"></div><div class="bar"><div class="t">Check My OG</div><div class="d">checkmyog.com</div></div></div>
+<div class="dlv">Delivered</div></div>
+</div></template>
+<div id="cam"></div>
+<script>
+const LEVELS = 8, K = 1200 / 560;
+let host = document.getElementById('cam');
+for (let i = 0; i < LEVELS; i++) {
+  const lvl = document.getElementById('t').content.firstElementChild.cloneNode(true);
+  if (i) lvl.style.transform = `scale(${1 / K})`;
+  host.appendChild(lvl);
+  host = lvl.querySelector('.shot');
+}
+</script>
 </body></html>

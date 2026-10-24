@@ -14,12 +14,12 @@
 <meta property="og:url" content="{{PUBLIC_URL}}/">
 <meta property="og:title" content="Check My OG">
 <meta property="og:description" content="See how a link will preview in iMessage, Discord, X, Slack and the rest before you share it. Checks og:image and og:video files, not just tags.">
-<meta property="og:video" content="{{PUBLIC_URL}}/og.mp4?v=681ef8b756">
-<meta property="og:video:secure_url" content="{{PUBLIC_URL}}/og.mp4?v=681ef8b756">
+<meta property="og:video" content="{{PUBLIC_URL}}/og.mp4?v=f5a451d7fc">
+<meta property="og:video:secure_url" content="{{PUBLIC_URL}}/og.mp4?v=f5a451d7fc">
 <meta property="og:video:type" content="video/mp4">
 <meta property="og:video:width" content="1200">
 <meta property="og:video:height" content="630">
-<meta property="og:image" content="{{PUBLIC_URL}}/og.png">
+<meta property="og:image" content="{{PUBLIC_URL}}/og.png?v=ca11a0873c">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta property="og:image:alt" content="Check My OG: link preview checker for og:image and og:video">
@@ -110,6 +110,8 @@ tbody tr.fail:hover td { background: var(--bad-hover); }
 .media video, .media img { width: 100%; height: 100%; object-fit: cover; display: block; }
 .media .empty { position: absolute; inset: 0; display: grid; place-items: center; color: var(--faint); }
 .xcard { border: 1px solid var(--line2); border-radius: 14px; overflow: hidden; }
+.xcard .xzone { position: absolute; left: 0; bottom: 0; width: 40%; height: 15%; border: 1.5px dashed rgba(255,255,255,.75); border-left: 0; border-bottom: 0; box-shadow: 1px -1px 0 rgba(0,0,0,.35); pointer-events: none; }
+.xnote { font-size: 12px; color: var(--faint); margin-top: 4px; }
 .xcard .domain { position: absolute; left: 10px; bottom: 10px; background: rgba(0,0,0,.77); color: #fff; font-size: 12px; padding: 0 5px; border-radius: 4px; }
 .dcard { border-left: 4px solid var(--line2); background: var(--bg2); border-radius: 4px; padding: 8px 12px 12px; }
 .dcard .t { color: var(--accent); font-weight: 600; margin: 2px 0; }
@@ -172,8 +174,8 @@ details > summary { cursor: pointer; color: var(--muted); font-size: 12px; font-
 }
 .site-foot { max-width: 1440px; margin: 0 auto; padding: 14px 16px 32px; border-top: 1px solid var(--line); color: var(--faint); font-size: 12px;
   display: flex; flex-wrap: wrap; gap: 6px 24px; justify-content: space-between; }
-.site-foot p { margin: 0; max-width: 90ch; }
-.site-foot a { color: var(--muted); }
+.site-foot p { margin: 0; text-wrap: balance; }
+.site-foot a { color: var(--muted); white-space: nowrap; }
 [hidden] { display: none !important; }
 </style>
 <script>
@@ -192,7 +194,7 @@ posthog.init(PH_KEY, { api_host: PH_HOST, persistence: "memory", person_profiles
   <a class="by" href="https://daywardai.com/?utm_source=checkmyog" data-track="dayward_click"><svg viewBox="0 0 16 16" aria-hidden="true"><defs><clipPath id="dwm"><circle cx="8" cy="8" r="8"/></clipPath></defs><g clip-path="url(#dwm)"><rect width="16" height="10" fill="#2443C4"/><circle cx="8" cy="9" r="5" fill="#E06A42"/><rect y="8" width="16" height="1" fill="#2443C4"/><rect y="10" width="16" height="6" fill="#7A95EE"/></g></svg><span>Made by Dayward AI</span></a></div>
   <form id="f">
     <label for="u" hidden>Page URL</label>
-    <input id="u" name="url" type="text" inputmode="url" autocomplete="url" spellcheck="false" placeholder="https://example.com/" value="https://spalterdigital.com/" required>
+    <input id="u" name="url" type="text" inputmode="url" autocomplete="url" spellcheck="false" placeholder="https://example.com/" value="{{PUBLIC_URL}}/" required>
     <button id="go" type="submit">Check</button>
   </form>
   <span class="meta" id="meta"></span>
@@ -229,7 +231,8 @@ posthog.init(PH_KEY, { api_host: PH_HOST, persistence: "memory", person_profiles
       <div class="pv"><div class="lab"><b>Discord</b><span id="d-lab"></span></div>
         <div class="dcard"><div class="site" id="d-site"></div><div class="t" id="d-t"></div><div class="d" id="d-d"></div><div class="media" id="d-media"></div></div></div>
       <div class="pv"><div class="lab"><b>X (Twitter)</b><span>og:image</span></div>
-        <div class="xcard"><div class="media" id="x-media"><span class="domain" id="x-domain"></span></div></div></div>
+        <div class="xcard"><div class="media" id="x-media"><span class="xzone" aria-hidden="true"></span><span class="domain" id="x-domain"></span></div></div>
+        <div class="xnote">Dashed: X covers this corner with the domain</div></div>
       <div class="pv"><div class="lab"><b>Facebook, LinkedIn, Slack, WhatsApp</b><span>og:image</span></div>
         <div class="fbcard"><div class="media" id="f-media"></div><div class="bot"><div class="d" id="f-domain"></div><div class="t" id="f-t"></div></div></div></div>
     </div>
