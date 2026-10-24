@@ -160,6 +160,20 @@ class EndToEnd(unittest.TestCase):
             with urllib.request.urlopen(self.base + name, timeout=10) as rr:
                 self.assertIn(magic, rr.read(32))
 
+    def test_app_redirects_http_to_https_except_the_long_domain(self):
+        import http.client
+        port = self.app.server_address[1]
+        for host, expect in (("checkmyog.com", 301), (next(iter(server.Handler.HOST_PAGES)), 200)):
+            c = http.client.HTTPConnection("127.0.0.1", port, timeout=10)
+            c.request("GET", "/?x=1", headers={"Host": host, "Fly-Forwarded-Proto": "http"})
+            r = c.getresponse()
+            r.read()
+            c.close()
+            self.assertEqual(r.status, expect, host)
+            if expect == 301:
+                self.assertEqual(r.getheader("Location"), f"https://{host}/?x=1")
+        self.assertEqual(self.get("/healthz")[0], 200)  # no proxy header: no redirect
+
     def test_inspect_json(self):
         code, _, body = self.get(f"/api/inspect?url=http://127.0.0.1:{self.port}/moved")
         self.assertEqual(code, 200)

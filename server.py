@@ -567,7 +567,24 @@ class Handler(SimpleHTTPRequestHandler):
         answered / with the length of the unfilled template."""
         self.do_GET()
 
+    # Fly's own https redirect (force_https) is off in fly.toml: the long test domain reaches
+    # this app over plain http from Cloudflare's proxy, because Fly cannot hold a certificate
+    # for a hostname over 63 characters. So the app sends http to https itself for every other
+    # host, judging by the scheme Fly saw at its edge (absent in tests and health checks).
+    def _https_redirect(self):
+        host = (self.headers.get("Host") or "").split(":")[0].lower()
+        proto = (self.headers.get("Fly-Forwarded-Proto") or self.headers.get("X-Forwarded-Proto") or "").split(",")[0].strip().lower()
+        if proto != "http" or not host or host in self.HOST_PAGES:
+            return False
+        self.send_response(301)
+        self.send_header("Location", "https://" + host + self.path)
+        self.send_header("Content-Length", "0")
+        self.end_headers()
+        return True
+
     def do_GET(self):
+        if self._https_redirect():
+            return
         u = urlsplit(self.path)
         if u.path == "/healthz":
             return self._text(200, "ok\n", "text/plain; charset=utf-8")

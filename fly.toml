@@ -15,7 +15,9 @@ primary_region = "sjc"
 
 [http_service]
   internal_port = 8080
-  force_https = true
+  # Off: the app redirects http to https itself (server.py _https_redirect), except for the
+  # long test domain, which arrives over plain http from Cloudflare's proxy.
+  force_https = false
   auto_stop_machines = "stop"
   auto_start_machines = true
   min_machines_running = 0
