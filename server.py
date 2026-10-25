@@ -414,6 +414,23 @@ def track(event: str, client: str, ua: str, props: dict) -> None:
     threading.Thread(target=send, daemon=True).start()
 
 
+def build_id() -> str:
+    """Short hash of the page and its support list. The page compares it with the
+    one the API sends and reloads itself once when they differ, so a tab left open
+    across a deploy stops judging new data by yesterday's rules."""
+    h = hashlib.sha256()
+    for name in ("index.html", "support.json"):
+        try:
+            with open(os.path.join(ROOT, name), "rb") as f:
+                h.update(f.read())
+        except OSError:
+            pass
+    return h.hexdigest()[:12]
+
+
+BUILD = build_id()
+
+
 def load_support() -> dict:
     try:
         with open(os.path.join(ROOT, "support.json"), encoding="utf-8") as f:
@@ -553,7 +570,7 @@ class Handler(SimpleHTTPRequestHandler):
         host = (self.headers.get("Host") or "").split(":")[0].lower()
         host_url = ("https://" + host) if host in self.HOST_PAGES else PUBLIC_URL
         for k, v in (("PUBLIC_URL", PUBLIC_URL), ("POSTHOG_KEY", POSTHOG_KEY), ("POSTHOG_HOST", POSTHOG_HOST),
-                     ("HOST_URL", host_url)):
+                     ("HOST_URL", host_url), ("BUILD", BUILD)):
             text = text.replace("{{" + k + "}}", v)
         self._text(200, text, ctype)
 
@@ -624,7 +641,7 @@ class Handler(SimpleHTTPRequestHandler):
         if u.path in self.TEMPLATES:
             return self._template(*self.TEMPLATES[u.path])
         if u.path == "/api/stats":
-            return self._json(200, {"checks": _checks})
+            return self._json(200, {"checks": _checks, "build": BUILD})
         if u.path not in ("/api/inspect", "/api/check"):
             return super().do_HEAD() if self.command == "HEAD" else super().do_GET()
         client = (CLIENT_IP_HEADER and self.headers.get(CLIENT_IP_HEADER)) or self.client_address[0]
@@ -653,6 +670,7 @@ class Handler(SimpleHTTPRequestHandler):
             r = inspect(url)
             # The page checks its own URL on load; only checks someone asked for count.
             r["total_checks"] = _checks if self.headers.get("X-Checkmyog-Trigger") == "default" else count_check()
+            r["build"] = BUILD
             self._text(200, to_markdown(r)) if md else self._json(200, r)
             sm = r["summary"]
             props.update(status=200, final_url=r["final_url"], video_plays_in=sm["video_plays_in"],

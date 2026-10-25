@@ -206,6 +206,7 @@ class EndToEnd(unittest.TestCase):
                          sum(1 for x in r["checks"] if x["ok"] is True and x["group"] != "platform"))
         self.assertIn("Facebook crawler sees og:image too", [x["label"] for x in r["checks"]])
         self.assertTrue(r["final_url"].endswith("/"))
+        self.assertEqual(r["build"], server.BUILD)
 
     def test_inspect_markdown(self):
         code, ctype, body = self.get(f"/api/inspect?url=http://127.0.0.1:{self.port}/&format=md")
@@ -231,6 +232,10 @@ class EndToEnd(unittest.TestCase):
             self.assertNotIn("{{", body, path)
             self.assertIn(server.PUBLIC_URL, body, path)
         json.loads(self.get("/openapi.json")[2])
+        # The page carries the build id the API reports, so a stale tab can tell it is stale.
+        self.assertRegex(server.BUILD, r"^[0-9a-f]{12}$")
+        self.assertIn(f'const BUILD = "{server.BUILD}";', self.get("/")[2])
+        self.assertEqual(json.loads(self.get("/api/stats")[2])["build"], server.BUILD)
 
     def test_static_range(self):
         size = os.path.getsize(os.path.join(server.ROOT, "og.mp4"))
@@ -261,7 +266,7 @@ class EndToEnd(unittest.TestCase):
                 f.write("41")
             server.load_checks()
             try:
-                self.assertEqual(json.loads(self.get("/api/stats")[2]), {"checks": 41})
+                self.assertEqual(json.loads(self.get("/api/stats")[2])["checks"], 41)
                 r = json.loads(self.get(f"/api/inspect?url=http://127.0.0.1:{self.port}/")[2])
                 self.assertEqual(r["total_checks"], 42)
                 self.assertEqual(self.get("/api/inspect?url=http://10.0.0.1/")[0], 400)   # refused: not counted
@@ -270,7 +275,7 @@ class EndToEnd(unittest.TestCase):
                                              headers={"X-Checkmyog-Trigger": "default"})
                 with urllib.request.urlopen(req, timeout=10) as resp:      # the page's own load-time check
                     self.assertEqual(json.loads(resp.read())["total_checks"], 42)
-                self.assertEqual(json.loads(self.get("/api/stats")[2]), {"checks": 42})
+                self.assertEqual(json.loads(self.get("/api/stats")[2])["checks"], 42)
                 server._checks = 0
                 server.load_checks()                         # a restart reads the file back
                 self.assertEqual(server._checks, 42)

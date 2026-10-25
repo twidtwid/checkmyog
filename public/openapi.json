@@ -42,6 +42,7 @@
       "note": {"type": "string"}, "source": {"type": "string"}}},
     "Report": {"type": "object", "properties": {
       "url": {"type": "string"}, "final_url": {"type": "string"},
+      "build": {"type": "string", "description": "Id of the deployed page; the page reloads itself when it differs from its own"},
       "summary": {"type": "object", "properties": {
         "video_plays_in": {"type": "array", "items": {"type": "string"}},
         "everywhere_else": {"type": "string", "enum": ["poster", "none"]},
