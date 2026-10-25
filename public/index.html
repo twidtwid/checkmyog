@@ -327,6 +327,20 @@ document.addEventListener("click", (e) => {
 });
 const GROUP_NAMES = { page: "Page", tags: "Tags", video: "Video file", platform: "Platform rules", poster: "Poster (fallback)", browser: "This browser", other: "Other" };
 let support = null, current = null, mode = "video", browser = {};
+const BUILD = "{{BUILD}}";
+// A tab left open across a deploy keeps the old page and its old rules while the Check
+// button fetches new data. When the server reports a different build, reload once; the
+// URL being checked goes into the query string first, so the check runs again on the
+// new page. sessionStorage remembers the build so a mismatch can never loop.
+function freshen(build, url) {
+  if (!build || build === BUILD) return false;
+  let seen = null;
+  try { seen = sessionStorage.getItem("build"); sessionStorage.setItem("build", build); } catch (e) {}
+  if (seen === build) return false;
+  if (url) history.replaceState(null, "", "?url=" + encodeURIComponent(url));
+  location.reload();
+  return true;
+}
 
 // ---------- media + previews ----------
 // Safari only autoplays a video that is muted before it gets a source: set the
@@ -601,6 +615,7 @@ async function run(url, trigger) {
     const d = await r.json();
     showCount(d.total_checks);
     if (!r.ok) throw Object.assign(new Error(d.error || `HTTP ${r.status}`), { status: r.status });
+    if (freshen(d.build, url)) return;
     if (seq !== run.n) return;
     const ms = Math.round(performance.now() - t0);
     let domain = ""; try { domain = new URL(d.final_url).hostname; } catch (e) {}
