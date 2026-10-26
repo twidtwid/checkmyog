@@ -283,6 +283,35 @@ class EndToEnd(unittest.TestCase):
             finally:
                 server.COUNTER_PATH, server._checks = orig
 
+    def test_page_load_self_check_is_cached(self):
+        calls = []
+        orig_inspect = server.inspect
+        server.inspect = lambda u: calls.append(u) or orig_inspect(u)
+        server._self_cache.clear()
+        url = f"{self.base}/api/inspect?url=http://127.0.0.1:{self.port}/"
+        try:
+            for _ in range(3):
+                req = urllib.request.Request(url, headers={"X-Checkmyog-Trigger": "default"})
+                with urllib.request.urlopen(req, timeout=10) as resp:
+                    self.assertEqual(json.loads(resp.read())["summary"]["checks_failed"], [])
+            self.assertEqual(len(calls), 1)                  # three page loads, one real check
+            self.get(f"/api/inspect?url=http://127.0.0.1:{self.port}/")
+            self.assertEqual(len(calls), 2)                  # a check someone asked for is always fresh
+        finally:
+            server.inspect = orig_inspect
+            server._self_cache.clear()
+
+    def test_busy_when_every_slot_is_taken(self):
+        orig = server._slots
+        server._slots = server.threading.BoundedSemaphore(1)
+        server._slots.acquire()
+        orig_acquire = server._slots.acquire
+        server._slots.acquire = lambda timeout=None: orig_acquire(timeout=0.1)
+        try:
+            self.assertEqual(self.get(f"/api/inspect?url=http://127.0.0.1:{self.port}/")[0], 503)
+        finally:
+            server._slots = orig
+
     def test_healthz_and_static(self):
         self.assertEqual(self.get("/healthz")[:1], (200,))
         code, ctype, _ = self.get("/support.json")

@@ -25,6 +25,7 @@
             "text/markdown": {"schema": {"type": "string"}}}},
           "400": {"description": "Bad or refused URL", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}},
           "429": {"description": "Rate limited (20 per minute per IP)", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}},
+          "503": {"description": "Every check slot is busy; retry in a few seconds", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}},
           "502": {"description": "Target failed to answer", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}}
         }
       }
