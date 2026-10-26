@@ -56,7 +56,7 @@ COUNTER_PATH = os.environ.get("COUNTER_PATH", "")
 UA = {"x": "Twitterbot/1.0",
       "facebook": "facebookexternalhit/1.1 (+http://www.facebook.com/externalhit_uatext.php)"}
 HTML_CAP = 2 * 1024 * 1024
-VIDEO_CAP = 40 * 1024 * 1024
+VIDEO_CAP = 50 * 1024 * 1024        # Discord reads at most 50 MB
 TIMEOUT = 12
 ALLOWED_PORTS = (80, 443)
 RATE = (20, 60)            # requests per window seconds, per client IP
@@ -237,7 +237,8 @@ GROUPS = [
     ("Video answers 200", "video", "v200"), ("Served as video/mp4", "video", "vctype"),
     ("Range requests", "video", "range"), ("Faststart", "video", "faststart"),
     ("H.264", "video", "h264"), ("yuv420p", "video", "yuv"), ("Real size", "video", "vsize"),
-    ("Duration", "video", "dur"), ("iMessage size", "platform", "imsize"), ("Fallback", "poster", ""),
+    ("Duration", "video", "dur"), ("iMessage size", "platform", "imsize"), ("iMessage page", "platform", "impage"),
+    ("Discord size", "platform", "dcsize"), ("Fallback", "poster", ""),
 ]
 
 
@@ -257,7 +258,7 @@ def note(label, detail=""):
 def inspect(url: str) -> dict:
     if not re.match(r"^https?://", url):
         url = "https://" + url
-    final, status, hdrs, body, _ = fetch(url, UA["x"])
+    final, status, hdrs, body, page_trunc = fetch(url, UA["x"])
     p = Meta()
     p.feed(body.decode("utf-8", "replace"))
     tags = p.tags
@@ -280,7 +281,9 @@ def inspect(url: str) -> dict:
         # Discord and X build nothing from a page with neither og: nor twitter: tags; the others fall back to <title>.
         "og_tags": sum(1 for k, _ in tags if k.startswith(("og:", "twitter:"))),
     }
-    checks = [check(status == 200, "Page answers 200 to Twitterbot", f"HTTP {status}, {final}")]
+    checks = [check(status == 200, "Page answers 200 to Twitterbot", f"HTTP {status}, {final}"),
+              check(not page_trunc and len(body) <= 1024 * 1024, "iMessage page size guideline (HTML ≤ 1 MB)",
+                    f"{len(body) / 1024:,.0f} KB" + (" or more" if page_trunc else ""))]
     raw_video = first(tags, "og:video", "og:video:url", "og:video:secure_url")
     # Does Facebook's crawler get the same page? Judged on the tag that matters most for this page.
     _, fb_status, _, fb_body, _ = fetch(url, UA["facebook"])
@@ -317,9 +320,8 @@ def inspect(url: str) -> dict:
         _, rs, rh, _, _ = fetch(card["video"], UA["x"], rng="bytes=0-1023", cap=2048)
         checks.append(check(rs == 206, "Range requests work (206)", f"HTTP {rs}, {rh.get('content-range', '')}"))
         size = len(vbody)
-        checks.append(check(not trunc and size <= 10 * 1024 * 1024, "iMessage size guideline (video ≤ 10 MB)",
-                            f"{size / 1024:,.0f} KB" + (" (over the 40 MB read cap)" if trunc else "")
-                            + "; Apple's 10 MB covers icon, image and video together"))
+        over = f" (over the {VIDEO_CAP // 1024 // 1024} MB read cap)" if trunc else ""
+        checks.append(check(not trunc, "Discord size limit (video ≤ 50 MB)", f"{size / 1024:,.0f} KB{over}"))
         boxes = mp4_boxes(vbody[:1024 * 1024] if not trunc else vbody)
         fast = "moov" in boxes and "mdat" in boxes and boxes.index("moov") < boxes.index("mdat")
         checks.append(check(fast, "Faststart (moov before mdat)", " → ".join(boxes[:6])))
@@ -369,6 +371,13 @@ def inspect(url: str) -> dict:
             checks.append(check(False, "Fallback: poster size readable", "unknown image format"))
         alt = first(tags, "og:image:alt", "twitter:image:alt")
         checks.append(check(bool(alt), "Fallback: poster has alt text", alt or "missing"))
+    if card["video"]:
+        # Apple's 10 MB covers the icon, image and video together; the icon is small, so video + poster.
+        img = poster.get("bytes", 0)
+        checks.append(check(not trunc and size + img <= 10 * 1024 * 1024,
+                            "iMessage size guideline (video + poster ≤ 10 MB)",
+                            f"video {size / 1024:,.0f} KB{over} + poster {img / 1024:,.0f} KB; "
+                            "Apple's 10 MB covers icon, image and video together"))
     order = ["page", "tags", "video", "platform", "poster", "other"]
     checks.sort(key=lambda x: order.index(x["group"]))      # stable: keeps order within a group
     result = {"url": url, "final_url": final, "card": card, "checks": checks, "video": video,
@@ -460,7 +469,7 @@ def verdicts(r: dict) -> dict:
     video_ok = bool(c["video"]) and all(
         x["ok"] for x in r["checks"] if x["group"] == "video" or x["key"] in ("video", "https", "vtype"))
     poster = "poster" if c["image"] else "none"
-    rule = {"iMessage": ok.get("imsize")}
+    rule = {"iMessage": ok.get("imsize"), "Discord": ok.get("dcsize", True)}
     sup = load_support()
     platforms = []
     for p in sup.get("platforms", []):
@@ -470,7 +479,8 @@ def verdicts(r: dict) -> dict:
         else:
             res = poster
         platforms.append({"platform": name, "result": res, "note": p.get("note", ""),
-                          "source": p.get("source", "")})
+                          "source": p.get("source", ""), "refresh": p.get("refresh"),
+                          "refresh_source": p.get("refresh_source")})
     scored = [x for x in r["checks"] if x["group"] != "platform" and not x.get("info")]
     return {
         "summary": {
@@ -481,6 +491,7 @@ def verdicts(r: dict) -> dict:
         },
         "platforms": platforms,
         "support_as_of": sup.get("as_of"),
+        "refresh_tip": (sup.get("refresh") or {}).get("tip"),
         "untested_platforms": sup.get("untested", []),
     }
 
@@ -527,6 +538,10 @@ def to_markdown(r: dict) -> str:
         out.append(f"| {pl['platform']} | {pl['result']} | {pl['note']} |")
     if r.get("untested_platforms"):
         out += ["", f"No evidence either way: {', '.join(r['untested_platforms'])}."]
+    if r.get("refresh_tip"):
+        out += ["", "## Stuck on an old preview?", "", r["refresh_tip"], ""]
+        out += [f"- {pl['platform']}: {pl['refresh']} ({pl['refresh_source']})" for pl in r["platforms"] if pl.get("refresh")]
+        out.append("- Everyone else: no documented way to refresh; a new URL is the fix.")
     out += ["", "## Tags", ""] + [f"- `{k}`: {val}" for k, val in r["tags"]]
     return "\n".join(out) + "\n"
 

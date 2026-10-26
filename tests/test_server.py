@@ -71,13 +71,39 @@ class Verdicts(unittest.TestCase):
         r = {"card": {"video": "https://example.com/v.mp4", "image": "https://example.com/p.png"},
              "checks": [server.check(True, "og:video present"), server.check(True, "Video URL is absolute https"),
                         server.check(True, "og:video:type is video/mp4"), server.check(True, "H.264 video"),
-                        server.check(True, "iMessage size guideline (video ≤ 10 MB)")]}
+                        server.check(True, "iMessage size guideline (video + poster ≤ 10 MB)")]}
         self.assertEqual(server.verdicts(r)["summary"]["video_plays_in"], ["iMessage", "Discord"])
         r["checks"].append(server.check(False, "Faststart (moov before mdat)"))
         self.assertEqual(server.verdicts(r)["summary"]["video_plays_in"], [])
         r["checks"][-1] = server.check(True, "Faststart (moov before mdat)")
-        r["checks"][-2] = server.check(False, "iMessage size guideline (video ≤ 10 MB)")
+        r["checks"][-2] = server.check(False, "iMessage size guideline (video + poster ≤ 10 MB)")
         self.assertEqual(server.verdicts(r)["summary"]["video_plays_in"], ["Discord"])
+
+    def test_a_video_over_50_mb_plays_in_neither(self):
+        """Over Apple's 10 MB only Discord plays; over Discord's 50 MB neither does."""
+        r = {"card": {"video": "https://example.com/v.mp4", "image": "https://example.com/p.png"},
+             "checks": [server.check(True, "og:video present"), server.check(False, "iMessage size guideline (video + poster ≤ 10 MB)"),
+                        server.check(True, "Discord size limit (video ≤ 50 MB)")]}
+        self.assertEqual(server.verdicts(r)["summary"]["video_plays_in"], ["Discord"])
+        r["checks"][-1] = server.check(False, "Discord size limit (video ≤ 50 MB)")
+        self.assertEqual(server.verdicts(r)["summary"]["video_plays_in"], [])
+        self.assertEqual(r["checks"][-1]["group"], "platform")    # a fact about the apps, not a failed check
+
+    def test_refresh_guidance_comes_from_support(self):
+        """Apps that document a refresh carry it with its source; the rest get null."""
+        r = {"card": {"video": None, "image": "https://example.com/p.png"}, "checks": [],
+             "final_url": "https://example.com/", "tags": []}
+        r.update(server.verdicts(r))
+        by = {p["platform"]: p for p in r["platforms"]}
+        self.assertIn("?v=2", by["Discord"]["refresh"])
+        self.assertTrue(by["Discord"]["refresh_source"].startswith("https://docs.discord.com/"))
+        self.assertIn("Sharing Debugger", by["Facebook"]["refresh"])
+        self.assertIsNone(by["Slack"]["refresh"])
+        self.assertTrue(all(p["refresh_source"] for p in r["platforms"] if p["refresh"]))
+        self.assertIn("?v=2", r["refresh_tip"])
+        md = server.to_markdown(r)
+        self.assertIn("## Stuck on an old preview?", md)
+        self.assertIn("- Everyone else: no documented way to refresh", md)
 
     def test_a_note_counts_in_neither_direction(self):
         """A page without og:video previews fine everywhere, so that row is a

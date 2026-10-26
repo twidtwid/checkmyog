@@ -40,7 +40,9 @@
       "key": {"type": "string"}, "label": {"type": "string"}, "detail": {"type": "string"}}},
     "Platform": {"type": "object", "properties": {
       "platform": {"type": "string"}, "result": {"type": "string", "enum": ["plays", "poster", "none"]},
-      "note": {"type": "string"}, "source": {"type": "string"}}},
+      "note": {"type": "string"}, "source": {"type": "string"},
+      "refresh": {"type": ["string", "null"], "description": "How to clear this app's cached preview, where the app documents one"},
+      "refresh_source": {"type": ["string", "null"]}}},
     "Report": {"type": "object", "properties": {
       "url": {"type": "string"}, "final_url": {"type": "string"},
       "build": {"type": "string", "description": "Id of the deployed page; the page reloads itself when it differs from its own"},
@@ -53,6 +55,8 @@
       "checks": {"type": "array", "items": {"$ref": "#/components/schemas/Check"}},
       "card": {"type": "object"}, "video": {"type": "object"}, "poster": {"type": "object"},
       "tags": {"type": "array", "items": {"type": "array", "items": {"type": "string"}, "minItems": 2, "maxItems": 2}},
-      "support_as_of": {"type": "string"}, "untested_platforms": {"type": "array", "items": {"type": "string"}}}}
+      "support_as_of": {"type": "string"},
+      "refresh_tip": {"type": ["string", "null"], "description": "The general fix when an app keeps showing an old preview"},
+      "untested_platforms": {"type": "array", "items": {"type": "string"}}}}
   }}
 }
