@@ -30,7 +30,7 @@ URL-encode the `url` parameter if it has its own query string. `/api/check` is a
 - `poster`: format, width, height, bytes of og:image.
 - `tags`: every og:* and twitter:* tag as `[name, content]`.
 
-Errors are JSON `{"error": "..."}` with status 400 (bad or refused URL: private addresses, ports other than 80/443, non-http schemes), 429 (rate limit) or 502 (the target failed to answer).
+Errors are JSON `{"error": "..."}` with status 400 (bad or refused URL: private addresses, ports other than 80/443, non-http schemes), 429 (rate limit), 502 (the target failed to answer) or 503 (busy; retry in a few seconds).
 
 ## What the results mean (as of 24 Oct 2026)
 

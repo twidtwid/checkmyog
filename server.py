@@ -62,11 +62,22 @@ ALLOWED_PORTS = (80, 443)
 RATE = (20, 60)            # requests per window seconds, per client IP
 _hits: dict[str, list[float]] = {}
 _lock = threading.Lock()
+# The page checks its own URL on every load. Under a crowd that would refetch our own
+# page, video and poster for each visitor, so that one check is cached briefly.
+SELF_CACHE_TTL = 600
+_self_cache: dict = {}
+# A check can hold a video of up to VIDEO_CAP in memory; cap how many run at once so a
+# crowd queues instead of running the machine out of memory.
+_slots = threading.BoundedSemaphore(int(os.environ.get("MAX_CONCURRENT_CHECKS", "6")))
 _checks = 0
 
 
 class Refused(Exception):
     pass
+
+
+class Busy(Exception):
+    """Every check slot stayed taken for 30 s."""
 
 
 def _safe_ip(host: str, port: int) -> str:
@@ -666,16 +677,38 @@ class Handler(SimpleHTTPRequestHandler):
                  "via": "web" if self.headers.get("X-Checkmyog-Client") == "web" else "api",
                  "trigger": self.headers.get("X-Checkmyog-Trigger") or "api"}
         t0 = time.monotonic()
+        default = self.headers.get("X-Checkmyog-Trigger") == "default"
         try:
-            r = inspect(url)
+            r = None
+            if default:
+                with _lock:
+                    hit = _self_cache.get(url)
+                if hit and now - hit[0] < SELF_CACHE_TTL:
+                    r = dict(hit[1])
+                    props["cached"] = True
+            if r is None:
+                if not _slots.acquire(timeout=30):
+                    raise Busy()
+                try:
+                    r = inspect(url)
+                finally:
+                    _slots.release()
+                if default:
+                    with _lock:
+                        if len(_self_cache) > 20:
+                            _self_cache.clear()
+                        _self_cache[url] = (now, dict(r))
             # The page checks its own URL on load; only checks someone asked for count.
-            r["total_checks"] = _checks if self.headers.get("X-Checkmyog-Trigger") == "default" else count_check()
+            r["total_checks"] = _checks if default else count_check()
             r["build"] = BUILD
             self._text(200, to_markdown(r)) if md else self._json(200, r)
             sm = r["summary"]
             props.update(status=200, final_url=r["final_url"], video_plays_in=sm["video_plays_in"],
                          checks_passed=sm["checks_passed"], checks_failed=len(sm["checks_failed"]),
                          has_video=bool(r["card"]["video"]), has_image=bool(r["card"]["image"]))
+        except Busy:
+            self._json(503, {"error": "Busy right now; try again in a few seconds."})
+            props.update(status=503, error="busy")
         except Refused as e:
             self._json(400, {"error": str(e)})
             props.update(status=400, error=str(e))
