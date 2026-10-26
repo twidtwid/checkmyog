@@ -106,6 +106,11 @@ tbody tr.fail:hover td { background: var(--bad-hover); }
 .plat td.note { color: var(--muted); font-size: 12px; }
 .plat th:last-child, .plat td.src { width: 52px; text-align: right; font-size: 12px; }
 .foot { color: var(--faint); font-size: 12px; margin: 6px 0 0; }
+.tip { margin: 6px 0 8px; font-size: 13px; }
+.refresh { margin: 0; padding-left: 18px; font-size: 13px; color: var(--muted); }
+.refresh li { margin: 0 0 6px; }
+.refresh a { font-size: 12px; }
+.tip code, .refresh code { white-space: nowrap; }
 
 /* Previews. */
 .seg { display: inline-flex; margin-bottom: 8px; }
@@ -307,6 +312,11 @@ posthog.init(PH_KEY, { api_host: PH_HOST, persistence: "memory", person_profiles
         </table>
         <p class="foot" id="untested"></p>
       </section>
+      <section class="block" id="refresh-block" hidden>
+        <div class="head"><h2>Stuck on an old preview?</h2></div>
+        <p class="tip" id="refresh-tip"></p>
+        <ul class="refresh" id="refresh"></ul>
+      </section>
     </div>
   </div>
   <p class="intro" id="agents"><b>For agents and scripts:</b> <code>curl "{{PUBLIC_URL}}/api/inspect?url=https://example.com/&amp;format=md"</code> returns a Markdown report; drop <code>&amp;format=md</code> for JSON. Instructions: <a href="/llms.txt">llms.txt</a> · <a href="/openapi.json">OpenAPI</a>. Specs: <a href="https://ogp.me/">Open Graph protocol</a> · <a href="https://developer.apple.com/documentation/technotes/tn3156-create-rich-previews-for-messages">Apple TN3156 (Messages previews)</a> · <a href="https://docs.discord.com/developers/link-previews/overview">Discord link previews</a>. No key; 20 checks a minute.</p>
@@ -452,7 +462,7 @@ function verdicts() {
   const posterOr = c.image ? "poster" : "none";
   return {
     imessage: videoOk && ok("imsize") ? "plays" : posterOr,
-    discord: videoOk ? "plays" : posterOr,
+    discord: videoOk && ok("dcsize") !== false ? "plays" : posterOr,
     _poster: posterOr,
   };
 }
@@ -477,6 +487,15 @@ function drawPlatforms() {
     ]);
   }));
   $("untested").textContent = support.untested?.length ? `No evidence either way: ${support.untested.join(", ")}.` : "";
+  if (support.refresh?.tip) {
+    const qs = (t) => t.split(/(\?v=2)/).map((x) => x === "?v=2" ? el("code", { textContent: x }) : x);  // keep ?v=2 on one line
+    $("refresh-tip").replaceChildren(...qs(support.refresh.tip));
+    $("refresh").replaceChildren(...support.platforms.filter((p) => p.refresh).map((p) => el("li", {}, [
+      el("b", { textContent: p.platform + ": " }), ...qs(p.refresh + " "),
+      el("a", { href: p.refresh_source, target: "_blank", rel: "noopener", textContent: "source" }),
+    ])), el("li", {}, [el("b", { textContent: "Everyone else: " }), "no documented way to refresh; a new URL is the fix."]));
+    $("refresh-block").hidden = false;
+  }
 }
 
 // ---------- checks ----------

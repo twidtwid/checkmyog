@@ -1,20 +1,22 @@
 {
- "as_of": "24 Oct 2026",
+ "as_of": "26 Oct 2026",
  "note": "From docs, developer reports and device tests.",
  "platforms": [
   {
    "platform": "iMessage",
    "status": "plays",
-   "note": "Autoplays the MP4 muted, looping. With autoplay off or Reduce Motion: poster with a play button. Apple's guideline: icon, image and video under 10 MB together. Device-tested 24 Oct 2026. Without og:image: a text bubble with the title, the domain and the site icon (seen 24 Oct 2026).",
+   "note": "Autoplays the MP4 muted, looping. With autoplay off or Reduce Motion: poster with a play button. Apple's guidelines: the page itself under 1 MB; icon, image and video together under 10 MB. A video that can only be streamed (HLS) needs a tap. Device-tested 24 Oct 2026. Without og:image: a text bubble with the title, the domain and the site icon (seen 24 Oct 2026).",
    "source": "https://developer.apple.com/documentation/technotes/tn3156-create-rich-previews-for-messages",
    "source_date": "2024-04"
   },
   {
    "platform": "Discord",
    "status": "plays",
-   "note": "Inline player with a play button; does not autoplay. Device-tested 24 Oct 2026 on the Mac and iOS clients with a plain og:type website page and a direct MP4. Discord's docs only describe og:type video.* or twitter:card player; neither was needed. Without any og: or twitter: tags: no embed at all, just the link (device-tested 24 Oct 2026, Mac and iOS, on a page with only a <title> and meta description).",
+   "note": "Inline player with a play button; does not autoplay. Device-tested 24 Oct 2026 on the Mac and iOS clients with a plain og:type website page and a direct MP4. Discord's docs only describe og:type video.* or twitter:card player; neither was needed. Without any og: or twitter: tags: no embed at all, just the link (device-tested 24 Oct 2026, Mac and iOS, on a page with only a <title> and meta description). Discord's docs: MP4, WebM or MOV; the fetch returns at most 50 MB and must finish, measuring the image and video included, within 10 seconds.",
    "source": "https://docs.discord.com/developers/link-previews/overview",
-   "source_date": "n.d."
+   "source_date": "n.d.",
+   "refresh": "Caches previews for about 30 minutes; until then, resharing the same URL shows the old card. Share it with a new query string such as ?v=2, or look it up in the Embed Debugger (discord.com/developers/embeds).",
+   "refresh_source": "https://docs.discord.com/developers/link-previews/overview"
   },
   {
    "platform": "Telegram",
@@ -49,7 +51,9 @@
    "status": "poster",
    "note": "Link cards carry a title, description and one thumbnail (app.bsky.embed.external); there is no video field.",
    "source": "https://docs.bsky.app/docs/advanced-guides/posts#website-card-embeds",
-   "source_date": "n.d."
+   "source_date": "n.d.",
+   "refresh": "The card is saved into each post when it's written, so a post keeps its card; a new post fetches the page again.",
+   "refresh_source": "https://docs.bsky.app/docs/advanced-guides/posts#website-card-embeds"
   },
   {
    "platform": "Mastodon",
@@ -84,7 +88,9 @@
    "status": "poster",
    "note": "Shows og:image. Tested 24 Oct; docs say an MP4 is only 'eligible' for inline play. Without og:image: a text card with the domain and title (Sharing Debugger, 24 Oct 2026).",
    "source": "https://developers.facebook.com/documentation/sharing/webmasters",
-   "source_date": "n.d."
+   "source_date": "n.d.",
+   "refresh": "Paste the URL into the Sharing Debugger (developers.facebook.com/tools/debug); it scrapes the page again. Images are cached by URL and don't update unless the image URL changes.",
+   "refresh_source": "https://developers.facebook.com/documentation/sharing/webmasters"
   }
  ],
  "untested": [
@@ -100,5 +106,9 @@
   "WeChat",
   "Line",
   "Viber"
- ]
+ ],
+ "refresh": {
+  "tip": "Apps cache a preview by its URL, so after you fix the tags an app can keep showing the old card. Share the link with a new query string, such as ?v=2, and give a changed og:image or og:video file a new URL too.",
+  "source": "https://docs.discord.com/developers/link-previews/overview"
+ }
 }
