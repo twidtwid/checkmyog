@@ -263,6 +263,22 @@ class EndToEnd(unittest.TestCase):
         self.assertIn(f'const BUILD = "{server.BUILD}";', self.get("/")[2])
         self.assertEqual(json.loads(self.get("/api/stats")[2])["build"], server.BUILD)
 
+    def test_page_reads_without_javascript(self):
+        """Crawlers that run no script still get the platform table, the refresh
+        list and the FAQ, and the FAQ's structured data matches what is shown."""
+        import html as h, re as r
+        body = self.get("/")[2]
+        self.assertIn("<td>iMessage</td>", body)
+        self.assertIn('class="res plays"', body)
+        self.assertIn("<b>Discord: </b>", body)
+        self.assertNotIn("Loading…", body)
+        blocks = [json.loads(b) for b in r.findall(r'<script type="application/ld\+json">(.*?)</script>', body, r.S)]
+        faq = next(x for x in blocks[0] if x["@type"] == "FAQPage")
+        shown = h.unescape(r.sub(r"<[^>]+>", " ", body))
+        for q in faq["mainEntity"]:
+            self.assertIn(q["name"], shown)
+            self.assertIn(q["acceptedAnswer"]["text"], shown)
+
     def test_static_range(self):
         size = os.path.getsize(os.path.join(server.ROOT, "og.mp4"))
 
