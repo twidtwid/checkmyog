@@ -3,12 +3,12 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Check My OG: see a link preview before you share it</title>
+<title>Check My OG: free Open Graph and link preview checker</title>
 <link rel="alternate" type="text/markdown" title="LLM instructions" href="/llms.txt">
 <link rel="service-desc" type="application/json" href="/openapi.json">
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
 <link rel="canonical" href="{{PUBLIC_URL}}/">
-<meta name="description" content="Check a page's Open Graph link preview as crawlers see it: tags, og:image, og:video, file encoding, fallback, and what each app will show.">
+<meta name="description" content="Free Open Graph checker: see how a link previews in iMessage, Discord, X, Slack, LinkedIn and more. Checks og:image and og:video files, says which apps play the video.">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Check My OG">
 <meta property="og:url" content="{{PUBLIC_URL}}/">
@@ -24,6 +24,88 @@
 <meta property="og:image:height" content="630">
 <meta property="og:image:alt" content="Check My OG: link preview checker for og:image and og:video">
 <meta name="twitter:card" content="summary_large_image">
+<script type="application/ld+json">
+[
+ {
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "Check My OG",
+  "url": "{{PUBLIC_URL}}/",
+  "description": "Free Open Graph and link preview checker. Shows how a link previews in iMessage, Discord, X, Slack, LinkedIn and more, checks the og:image and og:video files, and says which apps play the video.",
+  "applicationCategory": "DeveloperApplication",
+  "operatingSystem": "Any",
+  "isAccessibleForFree": true,
+  "offers": {
+   "@type": "Offer",
+   "price": "0",
+   "priceCurrency": "USD"
+  },
+  "image": "{{PUBLIC_URL}}/og.png?v=ca11a0873c",
+  "sameAs": [
+   "https://github.com/twidtwid/checkmyog"
+  ],
+  "publisher": {
+   "@type": "Organization",
+   "name": "Dayward AI",
+   "url": "https://daywardai.com/"
+  }
+ },
+ {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+   {
+    "@type": "Question",
+    "name": "What does Check My OG check?",
+    "acceptedAnswer": {
+     "@type": "Answer",
+     "text": "It fetches your page the way link-preview crawlers do (as Twitterbot and facebookexternalhit) and reads the Open Graph and Twitter Card tags. Then it downloads the og:image and og:video files and checks status, content type, size, codec, MP4 faststart and range requests. It draws the preview the way iMessage, Discord, X and Facebook show it and says which apps will play the video."
+    }
+   },
+   {
+    "@type": "Question",
+    "name": "Which apps play og:video?",
+    "acceptedAnswer": {
+     "@type": "Answer",
+     "text": "iMessage autoplays it, muted and looping. Discord shows an inline player you tap to play. X, Facebook, Telegram, WhatsApp, Slack, LinkedIn, Bluesky, Mastodon, Signal and Matrix show og:image instead, so og:image is what most people see."
+    }
+   },
+   {
+    "@type": "Question",
+    "name": "What size should og:image be?",
+    "acceptedAnswer": {
+     "@type": "Answer",
+     "text": "1.91:1 and at least 600 px wide. 1200×630 is the usual choice, and Apple suggests 900 px or more for Messages. If the page has a video, use its first frame."
+    }
+   },
+   {
+    "@type": "Question",
+    "name": "How do I make a link preview video autoplay in iMessage?",
+    "acceptedAnswer": {
+     "@type": "Answer",
+     "text": "Point og:video straight at an MP4 file, not a player page: H.264, yuv420p, faststart, served as video/mp4 over https with range requests. Apple's guideline is under 10 MB for the icon, image and video together, and under 1 MB for the page itself. Keep og:image as the poster for every other app."
+    }
+   },
+   {
+    "@type": "Question",
+    "name": "Why does an app still show my old link preview?",
+    "acceptedAnswer": {
+     "@type": "Answer",
+     "text": "Apps cache previews by URL. Discord holds one for about 30 minutes, Facebook fetches the page again from its Sharing Debugger, and Bluesky saves the card into each post. Most apps document no refresh at all, so share the link with a new query string such as ?v=2 and give a changed image or video a new URL."
+    }
+   },
+   {
+    "@type": "Question",
+    "name": "Is there an API, and is it free?",
+    "acceptedAnswer": {
+     "@type": "Answer",
+     "text": "Yes to both. GET /api/inspect?url=… returns JSON, or Markdown with &format=md; no key, 20 checks a minute. llms.txt and an OpenAPI file describe it for agents. The code is open source under the MIT license on GitHub."
+    }
+   }
+  ]
+ }
+]
+</script>
 <style>
 :root {
   --bg: #ffffff; --bg2: #f6f7f9; --fg: #1b1d21; --muted: #5f6672; --faint: #8a909b; --line: #e3e6ea; --line2: #d3d7dd;
@@ -186,6 +268,9 @@ details > summary { cursor: pointer; color: var(--muted); font-size: 12px; font-
 @media (max-width: 1100px) { .pvs { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 @media (max-width: 560px) { .pvs { grid-template-columns: minmax(0, 1fr); } }
 .block > .head .seg { margin: 0; }
+.faq { max-width: 110ch; margin-top: 18px; }
+.faq h3 { font-size: 14px; margin: 14px 0 4px; }
+.faq p { margin: 0; font-size: 13px; color: var(--muted); line-height: 1.5; }
 .intro { color: var(--faint); font-size: 12px; margin: 8px 0 0; max-width: 110ch; }
 .intro code { font: 12px var(--mono); color: var(--muted); overflow-wrap: anywhere; }
 .intro b { color: var(--muted); }
@@ -306,20 +391,35 @@ posthog.init(PH_KEY, { api_host: PH_HOST, persistence: "memory", person_profiles
     </div>
     <div>
       <section class="block">
-        <div class="head"><h2>Who plays og:video</h2><span class="aside" id="asof"></span></div>
+        <div class="head"><h2>Who plays og:video</h2><span class="aside" id="asof">{{SUPPORT_AS_OF}}</span></div>
         <table class="plat">
           <thead><tr><th>App</th><th title="What this URL gets in that app">This URL</th><th>Notes</th><th></th></tr></thead>
-          <tbody id="plat"><tr><td colspan="4" class="note">Loading…</td></tr></tbody>
+          <tbody id="plat">{{PLATFORM_ROWS}}</tbody>
         </table>
-        <p class="foot" id="untested"></p>
+        <p class="foot" id="untested">{{UNTESTED}}</p>
       </section>
-      <section class="block" id="refresh-block" hidden>
+      <section class="block" id="refresh-block">
         <div class="head"><h2>Stuck on an old preview?</h2></div>
-        <p class="tip" id="refresh-tip"></p>
-        <ul class="refresh" id="refresh"></ul>
+        <p class="tip" id="refresh-tip">{{REFRESH_TIP}}</p>
+        <ul class="refresh" id="refresh">{{REFRESH_ITEMS}}</ul>
       </section>
     </div>
   </div>
+  <section class="block faq" id="faq">
+    <div class="head"><h2>Questions</h2></div>
+    <h3>What does Check My OG check?</h3>
+    <p>It fetches your page the way link-preview crawlers do (as Twitterbot and facebookexternalhit) and reads the Open Graph and Twitter Card tags. Then it downloads the og:image and og:video files and checks status, content type, size, codec, MP4 faststart and range requests. It draws the preview the way iMessage, Discord, X and Facebook show it and says which apps will play the video.</p>
+    <h3>Which apps play og:video?</h3>
+    <p>iMessage autoplays it, muted and looping. Discord shows an inline player you tap to play. X, Facebook, Telegram, WhatsApp, Slack, LinkedIn, Bluesky, Mastodon, Signal and Matrix show og:image instead, so og:image is what most people see.</p>
+    <h3>What size should og:image be?</h3>
+    <p>1.91:1 and at least 600 px wide. 1200×630 is the usual choice, and Apple suggests 900 px or more for Messages. If the page has a video, use its first frame.</p>
+    <h3>How do I make a link preview video autoplay in iMessage?</h3>
+    <p>Point og:video straight at an MP4 file, not a player page: H.264, yuv420p, faststart, served as video/mp4 over https with range requests. Apple&#x27;s guideline is under 10 MB for the icon, image and video together, and under 1 MB for the page itself. Keep og:image as the poster for every other app.</p>
+    <h3>Why does an app still show my old link preview?</h3>
+    <p>Apps cache previews by URL. Discord holds one for about 30 minutes, Facebook fetches the page again from its Sharing Debugger, and Bluesky saves the card into each post. Most apps document no refresh at all, so share the link with a new query string such as ?v=2 and give a changed image or video a new URL.</p>
+    <h3>Is there an API, and is it free?</h3>
+    <p>Yes to both. GET /api/inspect?url=… returns JSON, or Markdown with &amp;format=md; no key, 20 checks a minute. llms.txt and an OpenAPI file describe it for agents. The code is open source under the MIT license on GitHub.</p>
+  </section>
   <p class="intro" id="agents"><b>For agents and scripts:</b> <code>curl "{{PUBLIC_URL}}/api/inspect?url=https://example.com/&amp;format=md"</code> returns a Markdown report; drop <code>&amp;format=md</code> for JSON. Instructions: <a href="/llms.txt">llms.txt</a> · <a href="/openapi.json">OpenAPI</a>. Specs: <a href="https://ogp.me/">Open Graph protocol</a> · <a href="https://developer.apple.com/documentation/technotes/tn3156-create-rich-previews-for-messages">Apple TN3156 (Messages previews)</a> · <a href="https://docs.discord.com/developers/link-previews/overview">Discord link previews</a>. No key; 20 checks a minute.</p>
   <p class="intro">Fetches the page as Twitterbot and facebookexternalhit, then fetches and probes the og:video and og:image files on the server. The "This browser" checks and every player on this page run in your browser. App previews follow each app's layout and are approximate. Need a known-good page to test an app with? Paste <a href="https://checkmyog.com/">https://checkmyog.com</a> itself: its tags, video and poster pass every check.</p>
 </main>

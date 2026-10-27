@@ -25,6 +25,7 @@ COUNTER_PATH (file that keeps the checks total across restarts; unset = memory).
 SIGTERM shuts down cleanly (exit 0).
 """
 import hashlib
+import html
 import http.client
 import io
 import ipaddress
@@ -459,6 +460,36 @@ def load_support() -> dict:
         return {"as_of": "?", "platforms": [], "untested": []}
 
 
+RES_TEXT = {"plays": "PLAYS", "poster": "POSTER"}
+RES_TIP = {"plays": "Plays the og:video", "poster": "Shows og:image"}
+
+
+def support_html() -> dict:
+    """The platform table and the refresh list as HTML, filled into the page on
+    the server so crawlers that run no JavaScript still read them. The page's
+    own script redraws both once a check comes back."""
+    sup, e = load_support(), html.escape
+    order = {"plays": 0, "poster": 1}
+    rows = []
+    for p in sorted(sup.get("platforms", []), key=lambda p: order.get(p["status"], 2)):
+        res = p["status"] if p["status"] in RES_TEXT else "unknown"
+        src = (f'<a href="{e(p["source"])}" target="_blank" rel="noopener">source</a>' if p.get("source") else "")
+        rows.append(f'<tr><td>{e(p["platform"])}</td><td class="res {res}" title="{e(RES_TIP.get(res, "Not documented"))}">'
+                    f'{RES_TEXT.get(res, "MAYBE")}</td><td class="note">{e(p.get("note", ""))}</td><td class="src">{src}</td></tr>')
+    items = [f'<li><b>{e(p["platform"])}: </b>{e(p["refresh"])} '
+             f'<a href="{e(p["refresh_source"])}" target="_blank" rel="noopener">source</a></li>'
+             for p in sup.get("platforms", []) if p.get("refresh")]
+    items.append("<li><b>Everyone else: </b>no documented way to refresh; a new URL is the fix.</li>")
+    untested = sup.get("untested", [])
+    return {
+        "PLATFORM_ROWS": "".join(rows),
+        "UNTESTED": e(f"No evidence either way: {', '.join(untested)}.") if untested else "",
+        "SUPPORT_AS_OF": e(f"Support as of {sup.get('as_of')}"),
+        "REFRESH_TIP": e((sup.get("refresh") or {}).get("tip", "")),
+        "REFRESH_ITEMS": "".join(items),
+    }
+
+
 def verdicts(r: dict) -> dict:
     """What each app shows for this URL. Same rules as the page: a platform
     that plays og:video (status "plays" in support.json) plays it only if
@@ -595,8 +626,11 @@ class Handler(SimpleHTTPRequestHandler):
             text = f.read()
         host = (self.headers.get("Host") or "").split(":")[0].lower()
         host_url = ("https://" + host) if host in self.HOST_PAGES else PUBLIC_URL
-        for k, v in (("PUBLIC_URL", PUBLIC_URL), ("POSTHOG_KEY", POSTHOG_KEY), ("POSTHOG_HOST", POSTHOG_HOST),
-                     ("HOST_URL", host_url), ("BUILD", BUILD)):
+        fills = {"PUBLIC_URL": PUBLIC_URL, "POSTHOG_KEY": POSTHOG_KEY, "POSTHOG_HOST": POSTHOG_HOST,
+                 "HOST_URL": host_url, "BUILD": BUILD}
+        if "{{PLATFORM_ROWS}}" in text:
+            fills.update(support_html())
+        for k, v in fills.items():
             text = text.replace("{{" + k + "}}", v)
         self._text(200, text, ctype)
 
