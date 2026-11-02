@@ -1,0 +1,64 @@
+/* Guide pages (/og-video, /imessage, ...). Colors, top bar and tabs match index.html. */
+:root {
+  --bg: #ffffff; --bg2: #f6f7f9; --fg: #1b1d21; --muted: #5f6672; --faint: #8a909b; --line: #e3e6ea; --line2: #d3d7dd;
+  --ok: #17803d; --bad: #c4291c; --warn: #a15c00; --accent: #1f5fd1;
+  --sans: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #15171a; --bg2: #1c1f23; --fg: #e6e8eb; --muted: #a2a8b2; --faint: #7b818b; --line: #2a2e34; --line2: #363b42;
+  --ok: #5ccf86; --bad: #ff7b6b; --warn: #e6a64a; --accent: #7aa5ff; color-scheme: dark } }
+:root[data-theme="dark"] {
+  --bg: #15171a; --bg2: #1c1f23; --fg: #e6e8eb; --muted: #a2a8b2; --faint: #7b818b; --line: #2a2e34; --line2: #363b42;
+  --ok: #5ccf86; --bad: #ff7b6b; --warn: #e6a64a; --accent: #7aa5ff; color-scheme: dark }
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--fg); font: 15px/1.55 var(--sans); }
+a { color: var(--accent); }
+input:focus-visible, button:focus-visible, a:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+
+/* Top bar: name, URL box (opens the checker), maker. */
+.bar { position: sticky; top: 0; z-index: 2; background: var(--bg); border-bottom: 1px solid var(--line); font-size: 13px; line-height: 1.45; }
+.bar-in { max-width: 1440px; margin: 0 auto; padding: 10px 16px; display: flex; flex-wrap: wrap; gap: 8px 10px; align-items: center; }
+.brand { font-weight: 700; font-size: 14px; color: var(--fg); text-decoration: none; white-space: nowrap; }
+.bar form { flex: 1; display: flex; gap: 6px; min-width: 0; }
+.bar input { flex: 1; min-width: 0; font: 13px var(--mono); padding: 6px 8px; border: 1px solid var(--line2); border-radius: 4px; background: var(--bg); color: var(--fg); }
+.bar button { font: 600 13px var(--sans); padding: 6px 14px; border-radius: 4px; border: 1px solid var(--accent); background: var(--accent); color: #fff; cursor: pointer; }
+.by { display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; font-size: 12px; color: var(--muted); text-decoration: none; }
+.by svg { width: 16px; height: 16px; flex: none; }
+.by:hover span { text-decoration: underline; }
+@media (max-width: 700px) { .bar form { flex-basis: 100%; order: 3; } }
+
+.tabs { border-top: 1px solid var(--line); }
+.tabs-in { max-width: 1440px; margin: 0 auto; padding: 0 16px; display: flex; gap: 4px; overflow-x: auto; scrollbar-width: none; }
+.tabs-in::-webkit-scrollbar { display: none; }
+.tabs a { padding: 8px 10px 6px; font-size: 13px; color: var(--muted); text-decoration: none; white-space: nowrap; border-bottom: 2px solid transparent; }
+.tabs a:hover { color: var(--fg); }
+.tabs a[aria-current="page"] { color: var(--fg); font-weight: 600; border-bottom-color: var(--accent); }
+@media (max-width: 520px) { .tabs-in { gap: 0; padding: 0 8px; } .tabs a { padding: 8px 7px 6px; } }
+
+/* The guide itself: one readable column. */
+.guide { max-width: 760px; margin: 0 auto; padding: 28px 16px 56px; }
+.guide h1 { font-size: 28px; line-height: 1.2; margin: 0 0 10px; }
+.guide .lede { font-size: 17px; color: var(--muted); margin: 0 0 20px; }
+.guide h2 { font-size: 19px; margin: 34px 0 8px; padding-top: 4px; }
+.guide h3 { font-size: 15px; margin: 20px 0 4px; }
+.guide p, .guide li { margin: 0 0 10px; }
+.guide ul, .guide ol { padding-left: 22px; margin: 0 0 12px; }
+.guide code { font: 13px var(--mono); background: var(--bg2); border: 1px solid var(--line); border-radius: 3px; padding: 0 4px; overflow-wrap: anywhere; }
+.guide pre { font: 13px/1.5 var(--mono); background: var(--bg2); border: 1px solid var(--line); border-radius: 4px; padding: 10px 12px; overflow-x: auto; margin: 0 0 14px; }
+.guide pre code { background: none; border: 0; padding: 0; }
+.guide table { width: 100%; border-collapse: collapse; margin: 0 0 14px; font-size: 14px; }
+.guide th, .guide td { text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--line); vertical-align: top; }
+.guide th { background: var(--bg2); color: var(--muted); font-size: 13px; font-weight: 600; }
+.guide .check { margin: 18px 0 8px; padding: 14px 16px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg2); }
+.guide .check p { margin: 0 0 8px; }
+.guide .check form { display: flex; gap: 6px; }
+.guide .check input { flex: 1; min-width: 0; font: 14px var(--mono); padding: 8px 10px; border: 1px solid var(--line2); border-radius: 4px; background: var(--bg); color: var(--fg); }
+.guide .check button { font: 600 14px var(--sans); padding: 8px 16px; border-radius: 4px; border: 1px solid var(--accent); background: var(--accent); color: #fff; cursor: pointer; }
+.guide .sources { font-size: 13px; color: var(--muted); }
+.guide .sources li { margin-bottom: 4px; overflow-wrap: anywhere; }
+.guide .faq h3 { margin-top: 16px; }
+
+.site-foot { max-width: 1440px; margin: 0 auto; padding: 14px 16px 32px; border-top: 1px solid var(--line); color: var(--faint); font-size: 12px; }
+.site-foot p { margin: 0; text-wrap: balance; }
+.site-foot a { color: var(--muted); white-space: nowrap; }

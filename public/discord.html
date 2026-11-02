@@ -1,0 +1,183 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Discord Embed Checker: Test Your Link Preview | Check My OG</title>
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="canonical" href="{{PUBLIC_URL}}/discord">
+<link rel="stylesheet" href="/guide.css">
+<meta name="description" content="See how your link embeds in Discord: the tags it reads, og:video and theme-color rules, why an embed won't show, and how to get past the 30-minute cache.">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="Check My OG">
+<meta property="og:url" content="{{PUBLIC_URL}}/discord">
+<meta property="og:title" content="Discord embed checker: test your link preview">
+<meta property="og:description" content="The tags Discord reads, its video and image rules, why an embed doesn't show, and how to refresh a cached preview.">
+<meta property="og:image" content="{{PUBLIC_URL}}/og.png?v=ca11a0873c">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Check My OG: link preview checker for og:image and og:video">
+<meta name="twitter:card" content="summary_large_image">
+<script type="application/ld+json">
+[
+ {"@context": "https://schema.org", "@type": "TechArticle", "headline": "Discord embed checker: test your link preview", "url": "{{PUBLIC_URL}}/discord",
+  "description": "See how your link embeds in Discord: the tags it reads, og:video and theme-color rules, why an embed won't show, and how to get past the 30-minute cache.", "dateModified": "2026-11-02", "image": "{{PUBLIC_URL}}/og.png?v=ca11a0873c",
+  "publisher": {"@type": "Organization", "name": "Dayward AI", "url": "https://daywardai.com/"},
+  "isPartOf": {"@type": "WebSite", "name": "Check My OG", "url": "{{PUBLIC_URL}}/"}},
+ {"@context": "https://schema.org", "@type": "BreadcrumbList", "itemListElement": [
+  {"@type": "ListItem", "position": 1, "name": "Check My OG", "item": "{{PUBLIC_URL}}/"},
+  {"@type": "ListItem", "position": 2, "name": "Discord", "item": "{{PUBLIC_URL}}/discord"}]},
+ {"@context": "https://schema.org", "@type": "FAQPage", "mainEntity": [
+  {"@type": "Question", "name": "Why is my Discord embed not showing?", "acceptedAnswer": {"@type": "Answer", "text": "Most often the page has no og: or twitter: tags in the HTML the server sends. Discord runs no JavaScript, needs a 2xx text/html response, and gives up after 5 redirects or 10 seconds. If the embed shows for other people but not in one place, check the viewer's embed setting, the sender's Embed Links permission in that channel, and whether the link was wrapped in angle brackets."}},
+  {"@type": "Question", "name": "How do I change the color of a Discord embed?", "acceptedAnswer": {"@type": "Answer", "text": "Add a theme-color meta tag, such as #5865F2. Discord uses it as the embed's accent color. Its docs accept only 6 or 8 digit hex values (#RRGGBB or #RRGGBBAA)."}},
+  {"@type": "Question", "name": "Why does my Discord embed show a small image?", "acceptedAnswer": {"@type": "Answer", "text": "With a title, description and one image but no layout tag, Discord puts a small image beside the text. Add twitter:card set to summary_large_image to get a large image below the text."}},
+  {"@type": "Question", "name": "How long does Discord cache a link preview?", "acceptedAnswer": {"@type": "Answer", "text": "About 30 minutes. Until then, sharing the same URL again shows the old embed. Share it with a new query string such as ?v=2, or look the URL up in Discord's Embed Debugger."}},
+  {"@type": "Question", "name": "Does Discord play og:video?", "acceptedAnswer": {"@type": "Answer", "text": "Yes. It shows an inline player with a play button and does not autoplay. Point og:video straight at an MP4, WebM or MOV file over https, set og:image as the preview frame, and keep the file under 50 MB."}}
+ ]}
+]
+</script>
+<script>
+/* PostHog, cookieless (memory persistence: no cookies, no banner). The server fills in the key; with none set (self-hosting) nothing loads. */
+window.PH_KEY = "{{POSTHOG_KEY}}"; window.PH_HOST = "{{POSTHOG_HOST}}";
+if (/^phc_/.test(PH_KEY)) {
+!function(t,e){var o,n,p,r;e.__SV||(window.posthog=e,e._i=[],e.init=function(i,s,a){function g(t,e){var o=e.split(".");2==o.length&&(t=t[o[0]],e=o[1]),t[e]=function(){t.push([e].concat(Array.prototype.slice.call(arguments,0)))}}(p=t.createElement("script")).type="text/javascript",p.crossOrigin="anonymous",p.async=!0,p.src=s.api_host.replace(".i.posthog.com","-assets.i.posthog.com")+"/static/array.js",(r=t.getElementsByTagName("script")[0]).parentNode.insertBefore(p,r);var u=e;for(void 0!==a?u=e[a]=[]:a="posthog",u.people=u.people||[],u.toString=function(t){var e="posthog";return"posthog"!==a&&(e+="."+a),t||(e+=" (stub)"),e},u.people.toString=function(){return u.toString(1)+".people (stub)"},o="init capture register register_once unregister opt_out_capturing has_opted_out_capturing opt_in_capturing reset identify alias set_config".split(" "),n=0;n<o.length;n++)g(u,o[n]);e._i.push([i,s,a])},e.__SV=1)}(document,window.posthog||[]);
+posthog.init(PH_KEY, { api_host: PH_HOST, persistence: "memory", person_profiles: "identified_only", capture_pageview: false,
+  loaded: function (ph) { try { var q = new URLSearchParams(location.search), ref = q.get("ref") || q.get("utm_source"); ph.register({ site: "checkmyog" }); if (ref) ph.register({ ref: ref }); } catch (e) {} ph.capture("$pageview"); } });
+}
+</script>
+</head>
+<body>
+<header class="bar"><div class="bar-in">
+  <a class="brand" href="/">Check My OG</a>
+  <form action="/" method="get">
+    <label for="u" hidden>Page URL</label>
+    <input id="u" name="url" type="text" inputmode="url" autocomplete="url" spellcheck="false" placeholder="https://example.com/" required>
+    <button type="submit">Check</button>
+  </form>
+  <a class="by" href="https://daywardai.com/?utm_source=checkmyog" data-track="dayward_click"><svg viewBox="0 0 16 16" aria-hidden="true"><defs><clipPath id="dwm"><circle cx="8" cy="8" r="8"/></clipPath></defs><g clip-path="url(#dwm)"><rect width="16" height="10" fill="#2443C4"/><circle cx="8" cy="9" r="5" fill="#E06A42"/><rect y="8" width="16" height="1" fill="#2443C4"/><rect y="10" width="16" height="6" fill="#7A95EE"/></g></svg><span>Made by Dayward AI</span></a>
+</div>{{TABS}}</header>
+<main class="guide">
+  <h1>Discord embed checker: test your link preview</h1>
+  <p class="lede">Discord builds an embed by fetching the page you paste and reading the tags in its HTML. This page covers what it reads and why an embed goes missing or stays out of date.</p>
+  <div class="check">
+    <p>Paste a URL. Check My OG reads your tags, downloads the og:image and og:video files, draws the Discord embed and flags a video over Discord's 50 MB limit.</p>
+    <form action="/" method="get"><label for="u2" hidden>Page URL</label><input id="u2" name="url" type="text" inputmode="url" spellcheck="false" placeholder="https://example.com/" required><button type="submit">Check</button></form>
+  </div>
+
+  <h2>What Discord needs</h2>
+  <p>Discord makes one GET request for the shared URL and parses the HTML that comes back. It runs no code, so tags that a script adds after load are never seen. Discord's docs list these conditions for a preview to appear:</p>
+  <ul>
+    <li>a 2xx response, served as <code>text/html</code> or <code>application/xhtml+xml</code> and not as a download</li>
+    <li>no more than 5 redirects</li>
+    <li>at most 50 MB returned</li>
+    <li>the whole fetch, including measuring your image and video, done within 10 seconds</li>
+  </ul>
+  <p>A page with no <code>og:</code> or <code>twitter:</code> tags gets no embed at all, only the link. Check My OG device-tested this on 24 Oct 2026 on the Mac and iOS clients, with a page that had only a <code>&lt;title&gt;</code> and a meta description.</p>
+  <p>A minimal set that gives a large-image embed:</p>
+<pre><code>&lt;meta property="og:site_name" content="Example"&gt;
+&lt;meta property="og:title" content="Page title"&gt;
+&lt;meta property="og:description" content="One or two sentences."&gt;
+&lt;meta property="og:image" content="https://example.com/card.png"&gt;
+&lt;meta property="og:image:width" content="1200"&gt;
+&lt;meta property="og:image:height" content="630"&gt;
+&lt;meta property="og:image:alt" content="What the image shows"&gt;
+&lt;meta name="theme-color" content="#5865F2"&gt;
+&lt;meta name="twitter:card" content="summary_large_image"&gt;</code></pre>
+  <table>
+    <thead><tr><th>Tag</th><th>What Discord does with it</th></tr></thead>
+    <tbody>
+      <tr><td><code>og:title</code></td><td>The title. Trimmed past 70 bytes (not characters) or 3 lines.</td></tr>
+      <tr><td><code>og:description</code></td><td>Plain text; HTML in it shows literally. Trimmed past 350 bytes or 20 lines.</td></tr>
+      <tr><td><code>og:site_name</code></td><td>Shown above the title. Over 256 characters: no preview at all.</td></tr>
+      <tr><td><code>og:image</code></td><td>PNG, GIF, JPEG, WebP or AVIF. Two to four <code>og:image</code> tags make a gallery.</td></tr>
+      <tr><td><code>og:image:width</code>, <code>og:image:height</code></td><td>Optional. Without them Discord downloads the image to measure it.</td></tr>
+      <tr><td><code>og:image:alt</code></td><td>Alt text. Over 4,096 characters: no preview at all.</td></tr>
+      <tr><td><code>twitter:card</code></td><td>Picks the layout (see below).</td></tr>
+      <tr><td><code>theme-color</code></td><td>The accent color. <code>#RRGGBB</code> or <code>#RRGGBBAA</code> only.</td></tr>
+      <tr><td><code>og:video</code></td><td>An MP4, WebM or MOV file over https.</td></tr>
+    </tbody>
+  </table>
+  <p>Width, height, type and alt tags attach only to <code>og:image</code> and <code>twitter:image</code>. Discord doesn't read them for <code>og:image:secure_url</code>, <code>og:image:url</code> or <code>twitter:image:src</code>, so declare dimensions on the plain tag. A relative image URL must start with <code>/</code>. Any URL over 2,048 characters means no preview.</p>
+
+  <h2>Discord og:video embeds</h2>
+  <p>Discord plays <code>og:video</code> in an inline player with a play button. It does not autoplay. Check My OG tested this on 24 Oct 2026 on the Mac and iOS clients with a direct MP4. Discord's docs add:</p>
+  <ul>
+    <li>Point <code>og:video</code> at the video file itself, not a player page.</li>
+    <li><code>og:image</code> is required and becomes the preview frame.</li>
+    <li>If Discord can't measure the file and no dimensions are declared, it drops the video and shows a plain link preview.</li>
+  </ul>
+  <p>The docs also ask for <code>og:type</code> set to <code>video.other</code> or <code>twitter:card</code> set to <code>player</code>. In Check My OG's device test the video played on a plain <code>og:type</code> website page without either. The snippet follows the docs:</p>
+<pre><code>&lt;meta property="og:type" content="video.other"&gt;
+&lt;meta property="og:video" content="https://example.com/clip.mp4"&gt;
+&lt;meta property="og:video:type" content="video/mp4"&gt;
+&lt;meta property="og:video:width" content="1280"&gt;
+&lt;meta property="og:video:height" content="720"&gt;
+&lt;meta property="og:image" content="https://example.com/clip-first-frame.jpg"&gt;</code></pre>
+  <p>An MP4 meant to autoplay in iMessage too has more rules. The <a href="/og-video">og:video guide</a> and the <a href="/imessage">iMessage guide</a> cover them.</p>
+
+  <h2>How the embed looks</h2>
+  <p>The tags you set decide the layout:</p>
+  <table>
+    <thead><tr><th>Tags</th><th>Embed</th></tr></thead>
+    <tbody>
+      <tr><td>Title, description, one image, no layout tag</td><td>Text with a small image</td></tr>
+      <tr><td><code>twitter:card</code> = <code>summary_large_image</code></td><td>Text with a large image below it</td></tr>
+      <tr><td><code>twitter:card</code> = <code>photo</code>, or a URL straight to an image file</td><td>The image alone, no description</td></tr>
+      <tr><td>A video file plus <code>og:type</code> <code>video.other</code> or <code>twitter:card</code> <code>player</code></td><td>Inline player with <code>og:image</code> as the frame, no description</td></tr>
+      <tr><td>Two or more <code>og:image</code> tags</td><td>A gallery of up to 4 images</td></tr>
+      <tr><td><code>og:type</code> = <code>rich</code></td><td>Description rendered as Discord markdown, small thumbnail</td></tr>
+    </tbody>
+  </table>
+
+  <h2>Discord embed not showing: problems and fixes</h2>
+  <table>
+    <thead><tr><th>What you see</th><th>Fix</th></tr></thead>
+    <tbody>
+      <tr><td>Only the link, no embed, everywhere</td><td>Put the <code>og:</code> tags in the HTML your server sends, not in a script. Make sure the page answers 2xx as <code>text/html</code> within 10 seconds and 5 redirects.</td></tr>
+      <tr><td>Embed shows for others but not for you</td><td>Check the viewer's setting "Show embeds and preview website links pasted into the chat" under User Settings, Chat. With it off, links don't preview.</td></tr>
+      <tr><td>No embed in one channel</td><td>The sender needs the Embed Links permission there. Links sent without it aren't embedded.</td></tr>
+      <tr><td>No embed for one link</td><td>A link wrapped in <code>&lt; &gt;</code> doesn't embed. In a message with more than 5 links, the later ones get no preview.</td></tr>
+      <tr><td>Small image beside the text</td><td>Add <code>twitter:card</code> = <code>summary_large_image</code>.</td></tr>
+      <tr><td>A plain card where the video should be</td><td>Point <code>og:video</code> at an MP4, WebM or MOV file over https, set <code>og:image</code>, and add <code>og:video:width</code> and <code>og:video:height</code>. Keep the file under 50 MB.</td></tr>
+      <tr><td>Color missing or wrong</td><td>Use a 6 or 8 digit hex value in <code>theme-color</code>. Short hex such as <code>#fff</code> and color names don't fit Discord's documented format.</td></tr>
+    </tbody>
+  </table>
+  <p>Check My OG fetches your page as Twitterbot and facebookexternalhit, not as Discord, and it doesn't check <code>theme-color</code> or the 10-second limit. To see Discord's own read of a URL, use Discord's <a href="https://discord.com/developers/embeds">Embed Debugger</a>, which shows the tags it picked up and the layout it chose.</p>
+
+  <h2>Clear a cached Discord embed</h2>
+  <p>Discord caches a preview for about 30 minutes. Until then, sharing the same URL again shows the old card, even after you change the tags. To see the change now:</p>
+  <ul>
+    <li>Share the URL with a new query string, such as <code>?v=2</code>.</li>
+    <li>Look the URL up in the <a href="https://discord.com/developers/embeds">Embed Debugger</a>.</li>
+    <li>When you replace the og:image or og:video file, give the new file a new URL too.</li>
+  </ul>
+  <p>Check My OG reads your page as it is now, so you can confirm the fix before you share the link again. For the same problem in other apps, see the <a href="/slack">Slack</a> and <a href="/linkedin">LinkedIn</a> guides.</p>
+
+  <section class="faq">
+    <h2>Questions</h2>
+    <h3>Why is my Discord embed not showing?</h3>
+    <p>Most often the page has no og: or twitter: tags in the HTML the server sends. Discord runs no JavaScript, needs a 2xx text/html response, and gives up after 5 redirects or 10 seconds. If the embed shows for other people but not in one place, check the viewer's embed setting, the sender's Embed Links permission in that channel, and whether the link was wrapped in angle brackets.</p>
+    <h3>How do I change the color of a Discord embed?</h3>
+    <p>Add a theme-color meta tag, such as #5865F2. Discord uses it as the embed's accent color. Its docs accept only 6 or 8 digit hex values (#RRGGBB or #RRGGBBAA).</p>
+    <h3>Why does my Discord embed show a small image?</h3>
+    <p>With a title, description and one image but no layout tag, Discord puts a small image beside the text. Add twitter:card set to summary_large_image to get a large image below the text.</p>
+    <h3>How long does Discord cache a link preview?</h3>
+    <p>About 30 minutes. Until then, sharing the same URL again shows the old embed. Share it with a new query string such as ?v=2, or look the URL up in Discord's Embed Debugger.</p>
+    <h3>Does Discord play og:video?</h3>
+    <p>Yes. It shows an inline player with a play button and does not autoplay. Point og:video straight at an MP4, WebM or MOV file over https, set og:image as the preview frame, and keep the file under 50 MB.</p>
+  </section>
+
+  <h2>Sources</h2>
+  <ul class="sources">
+    <li><a href="https://docs.discord.com/developers/link-previews/overview">Discord Developer Docs: Link Previews</a> (fetch rules, tags, layouts, limits, video, theme-color, caching)</li>
+    <li><a href="https://docs.discord.com/developers/topics/permissions">Discord Developer Docs: Permissions</a> (Embed Links)</li>
+    <li><a href="https://support.discord.com/hc/en-us/articles/25444343291031-File-Attachments-FAQ">Discord Support: File Attachments FAQ</a> (the "Show embeds" setting)</li>
+    <li><a href="https://support.discord.com/hc/en-us/articles/206342858--How-do-I-disable-auto-embed">Discord Support: How do I disable auto-embed?</a> (angle brackets)</li>
+    <li><a href="/support.json">Check My OG support.json</a> (device tests on the Mac and iOS clients, 24 Oct 2026)</li>
+  </ul>
+</main>
+<footer class="site-foot">
+  <p>Open source (MIT). An app behaves differently than this page says? <a href="https://github.com/twidtwid/checkmyog/issues/new/choose">Open an issue</a> or <a href="https://github.com/twidtwid/checkmyog/blob/main/CONTRIBUTING.md">send a pull request</a>.</p>
+</footer>
+</body>
+</html>

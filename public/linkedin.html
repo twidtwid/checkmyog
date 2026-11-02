@@ -1,0 +1,148 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>LinkedIn Link Preview Checker and Fixes | Check My OG</title>
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="canonical" href="{{PUBLIC_URL}}/linkedin">
+<link rel="stylesheet" href="/guide.css">
+<meta name="description" content="Check how a link previews on LinkedIn: the og tags it reads, its 1200×627 image minimum and 5 MB limit, common fixes, and refreshing with Post Inspector.">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="Check My OG">
+<meta property="og:url" content="{{PUBLIC_URL}}/linkedin">
+<meta property="og:title" content="LinkedIn link preview checker">
+<meta property="og:description" content="Check how a link previews on LinkedIn: the og tags it reads, its 1200×627 image minimum and 5 MB limit, common fixes, and refreshing with Post Inspector.">
+<meta property="og:image" content="{{PUBLIC_URL}}/og.png?v=ca11a0873c">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Check My OG: link preview checker for og:image and og:video">
+<meta name="twitter:card" content="summary_large_image">
+<script type="application/ld+json">
+[
+ {"@context": "https://schema.org", "@type": "TechArticle", "headline": "LinkedIn link preview checker", "url": "{{PUBLIC_URL}}/linkedin",
+  "description": "Check how a link previews on LinkedIn: the og tags it reads, its 1200×627 image minimum and 5 MB limit, common fixes, and refreshing with Post Inspector.", "dateModified": "2026-11-02", "image": "{{PUBLIC_URL}}/og.png?v=ca11a0873c",
+  "publisher": {"@type": "Organization", "name": "Dayward AI", "url": "https://daywardai.com/"},
+  "isPartOf": {"@type": "WebSite", "name": "Check My OG", "url": "{{PUBLIC_URL}}/"}},
+ {"@context": "https://schema.org", "@type": "BreadcrumbList", "itemListElement": [
+  {"@type": "ListItem", "position": 1, "name": "Check My OG", "item": "{{PUBLIC_URL}}/"},
+  {"@type": "ListItem", "position": 2, "name": "LinkedIn", "item": "{{PUBLIC_URL}}/linkedin"}]},
+ {"@context": "https://schema.org", "@type": "FAQPage", "mainEntity": [
+  {"@type": "Question", "name": "What size should a LinkedIn link preview image be?", "acceptedAnswer": {"@type": "Answer", "text": "LinkedIn's help sets a minimum of 1200 × 627 pixels, a recommended ratio of 1.91:1 and a maximum file size of 5 MB. Images under 401 pixels wide show as a small thumbnail."}},
+  {"@type": "Question", "name": "Why is my LinkedIn link preview not showing an image?", "acceptedAnswer": {"@type": "Answer", "text": "Check that the page has an og:image tag with a full URL that loads as an image and is under 5 MB. LinkedIn says that if the image meets its requirements and still does not appear, the site may be blocking LinkedIn from fetching it, or the image may sit in a protected directory."}},
+  {"@type": "Question", "name": "How do I refresh a LinkedIn link preview?", "acceptedAnswer": {"@type": "Answer", "text": "Enter the URL in LinkedIn Post Inspector, which fetches the page again. The new preview applies to new posts only; posts already shared keep the old one. LinkedIn's troubleshooting article also says to allow 48 hours for tag changes to take effect."}},
+  {"@type": "Question", "name": "Does LinkedIn play og:video?", "acceptedAnswer": {"@type": "Answer", "text": "No video was seen in Check My OG's tests. LinkedIn shows og:image with the title and description, so set a good og:image even on a page that has og:video."}},
+  {"@type": "Question", "name": "Is there an alternative to LinkedIn Post Inspector?", "acceptedAnswer": {"@type": "Answer", "text": "Post Inspector is LinkedIn's official tool for refreshing its cache, and Check My OG cannot do that. Check My OG is free and needs no sign-in: it shows how the link previews in LinkedIn and other apps at once, and tests the og:image and og:video files."}}
+ ]}
+]
+</script>
+<script>
+/* PostHog, cookieless (memory persistence: no cookies, no banner). The server fills in the key; with none set (self-hosting) nothing loads. */
+window.PH_KEY = "{{POSTHOG_KEY}}"; window.PH_HOST = "{{POSTHOG_HOST}}";
+if (/^phc_/.test(PH_KEY)) {
+!function(t,e){var o,n,p,r;e.__SV||(window.posthog=e,e._i=[],e.init=function(i,s,a){function g(t,e){var o=e.split(".");2==o.length&&(t=t[o[0]],e=o[1]),t[e]=function(){t.push([e].concat(Array.prototype.slice.call(arguments,0)))}}(p=t.createElement("script")).type="text/javascript",p.crossOrigin="anonymous",p.async=!0,p.src=s.api_host.replace(".i.posthog.com","-assets.i.posthog.com")+"/static/array.js",(r=t.getElementsByTagName("script")[0]).parentNode.insertBefore(p,r);var u=e;for(void 0!==a?u=e[a]=[]:a="posthog",u.people=u.people||[],u.toString=function(t){var e="posthog";return"posthog"!==a&&(e+="."+a),t||(e+=" (stub)"),e},u.people.toString=function(){return u.toString(1)+".people (stub)"},o="init capture register register_once unregister opt_out_capturing has_opted_out_capturing opt_in_capturing reset identify alias set_config".split(" "),n=0;n<o.length;n++)g(u,o[n]);e._i.push([i,s,a])},e.__SV=1)}(document,window.posthog||[]);
+posthog.init(PH_KEY, { api_host: PH_HOST, persistence: "memory", person_profiles: "identified_only", capture_pageview: false,
+  loaded: function (ph) { try { var q = new URLSearchParams(location.search), ref = q.get("ref") || q.get("utm_source"); ph.register({ site: "checkmyog" }); if (ref) ph.register({ ref: ref }); } catch (e) {} ph.capture("$pageview"); } });
+}
+</script>
+</head>
+<body>
+<header class="bar"><div class="bar-in">
+  <a class="brand" href="/">Check My OG</a>
+  <form action="/" method="get">
+    <label for="u" hidden>Page URL</label>
+    <input id="u" name="url" type="text" inputmode="url" autocomplete="url" spellcheck="false" placeholder="https://example.com/" required>
+    <button type="submit">Check</button>
+  </form>
+  <a class="by" href="https://daywardai.com/?utm_source=checkmyog" data-track="dayward_click"><svg viewBox="0 0 16 16" aria-hidden="true"><defs><clipPath id="dwm"><circle cx="8" cy="8" r="8"/></clipPath></defs><g clip-path="url(#dwm)"><rect width="16" height="10" fill="#2443C4"/><circle cx="8" cy="9" r="5" fill="#E06A42"/><rect y="8" width="16" height="1" fill="#2443C4"/><rect y="10" width="16" height="6" fill="#7A95EE"/></g></svg><span>Made by Dayward AI</span></a>
+</div>{{TABS}}</header>
+<main class="guide">
+  <h1>LinkedIn link preview checker</h1>
+  <p class="lede">LinkedIn builds a link preview from four Open Graph tags on your page. This page lists the tags and image limits LinkedIn documents, fixes for previews that are missing or out of date, and how Check My OG fits next to LinkedIn&#x27;s own Post Inspector.</p>
+  <div class="check">
+    <p>Paste a URL to see the og:image LinkedIn will show, and check that file&#x27;s size, shape and type.</p>
+    <form action="/" method="get"><label for="u2" hidden>Page URL</label><input id="u2" name="url" type="text" inputmode="url" spellcheck="false" placeholder="https://example.com/" required><button type="submit">Check</button></form>
+  </div>
+
+  <h2>What LinkedIn reads</h2>
+  <p>LinkedIn's help article on shareable websites lists four Open Graph tags that must exist on the page:</p>
+<pre><code>&lt;meta property="og:title" content="Title of the page"&gt;
+&lt;meta property="og:description" content="Description that shows in the preview"&gt;
+&lt;meta property="og:image" content="https://example.com/preview.png"&gt;
+&lt;meta property="og:url" content="https://example.com/page"&gt;</code></pre>
+  <p>og:url is the page's canonical URL, as the <a href="https://ogp.me/">Open Graph protocol</a> defines it. LinkedIn's share box relies on Open Graph or oEmbed to pick the title, description and image. If a page has neither, LinkedIn may pull nothing, or show other content from the site.</p>
+
+  <h2>Image size and file limits</h2>
+  <p>These are the numbers LinkedIn documents for images in its sharing module:</p>
+  <table>
+    <thead><tr><th>Requirement</th><th>LinkedIn's number</th></tr></thead>
+    <tbody>
+      <tr><td>Minimum size</td><td>1200 × 627 px</td></tr>
+      <tr><td>Aspect ratio</td><td>1.91:1 recommended</td></tr>
+      <tr><td>Maximum file size</td><td>5 MB</td></tr>
+      <tr><td>Small images</td><td>Under 401 px wide, the image shows as a thumbnail</td></tr>
+    </tbody>
+  </table>
+  <p>A 1200 × 630 image, the size many sites already use for og:image, is above the minimum and close to 1.91:1. The same help article also lists file types and larger sizes, but those sit under its single image ad specifications, not link shares.</p>
+  <p>Check My OG's poster check passes an image at 600 px wide and 1.91:1, because that is enough for most apps. For LinkedIn, aim for 1200 × 627 or larger. The checker also fails an og:image over 5 MB, which matches LinkedIn's limit.</p>
+
+  <h2>How the preview looks</h2>
+  <p>LinkedIn builds the card from og:image, og:title and og:description (from Check My OG's tests). A wide image fills the top of the card; an image under 401 px wide shows as a small thumbnail instead. The checker draws this layout in its "Facebook, LinkedIn, Slack, WhatsApp" preview, with the image on top and the domain and title under it. App previews on Check My OG are approximate.</p>
+  <p>LinkedIn shows og:image even when the page sets og:video: Check My OG saw no video play on LinkedIn. If you add og:video for iMessage or Discord, keep a good og:image for LinkedIn. The <a href="/og-video">og:video guide</a> covers which apps play it, and the <a href="/imessage">iMessage</a>, <a href="/discord">Discord</a> and <a href="/slack">Slack</a> guides cover those apps.</p>
+
+  <h2>Common problems and fixes</h2>
+  <table>
+    <thead><tr><th>Symptom</th><th>Fix</th></tr></thead>
+    <tbody>
+      <tr><td>No image in the preview</td><td>Check that og:image is a full https URL that answers 200 with an image type and is under 5 MB. If it is, LinkedIn says your site may be blocking it from fetching the image, or the image may sit in a protected directory. Check that a firewall, bot filter or login does not stand in front of the image file.</td></tr>
+      <tr><td>A small thumbnail instead of a wide image</td><td>The image is under 401 px wide. Use 1200 × 627 or larger at 1.91:1.</td></tr>
+      <tr><td>Wrong title, description or image, or other content from the site</td><td>One or more of the four og tags is missing. Add og:title, og:description, og:image and og:url.</td></tr>
+      <tr><td>The old image or title after you changed the tags</td><td>LinkedIn cached the earlier preview. Refresh it in Post Inspector (below).</td></tr>
+      <tr><td>An error when you paste the link</td><td>LinkedIn can't share URLs with spaces in them. Encode the spaces as <code>%20</code> or remove them.</td></tr>
+      <tr><td>The video doesn't play</td><td>LinkedIn shows og:image for links. Make sure the poster image is the one you want people to see.</td></tr>
+    </tbody>
+  </table>
+
+  <h2>Refresh a cached LinkedIn preview</h2>
+  <p>LinkedIn caches the preview of a URL that has been shared before, so a fix to your tags may not show up on its own. To refresh it:</p>
+  <ol>
+    <li>Fix the tags and deploy the page.</li>
+    <li>Open <a href="https://www.linkedin.com/post-inspector/">LinkedIn Post Inspector</a> and enter the URL.</li>
+    <li>Confirm that the preview shows the right content.</li>
+  </ol>
+  <p>Post Inspector shows when LinkedIn last updated its data about the page and lets you request a new scrape. It also points out data missing from the page. The refresh only applies to new posts: posts that already include the URL keep their old preview. LinkedIn's troubleshooting article separately says to allow 48 hours for tag changes to take effect.</p>
+  <p>Apps cache images by URL too. If you replace the og:image file, give the new file a new URL (for example <code>preview.png?v=2</code>) so the old one isn't reused.</p>
+
+  <h2>Post Inspector or Check My OG?</h2>
+  <p>Post Inspector is LinkedIn's own tool. It shows what LinkedIn's crawler got from your page, and it is how you make LinkedIn fetch the page again. Check My OG can't clear LinkedIn's cache, and it fetches pages as Twitterbot and facebookexternalhit, not as LinkedIn's crawler. A site that blocks LinkedIn alone can pass here and still fail in Post Inspector.</p>
+  <p>Check My OG is for seeing the preview in LinkedIn, iMessage, Discord, X and others at once, and for testing the files. It downloads og:image and checks the status, content type, format, size in bytes, width, shape and alt text. With og:video it also checks the codec, faststart and range requests. It is free, needs no sign-in, and has a <a href="/llms.txt">JSON and Markdown API</a>. <a href="/?url=https://checkmyog.com/">Try it on checkmyog.com itself</a>.</p>
+
+  <section class="faq">
+    <h2>Questions</h2>
+    <h3>What size should a LinkedIn link preview image be?</h3>
+    <p>LinkedIn's help sets a minimum of 1200 × 627 pixels, a recommended ratio of 1.91:1 and a maximum file size of 5 MB. Images under 401 pixels wide show as a small thumbnail.</p>
+    <h3>Why is my LinkedIn link preview not showing an image?</h3>
+    <p>Check that the page has an og:image tag with a full URL that loads as an image and is under 5 MB. LinkedIn says that if the image meets its requirements and still does not appear, the site may be blocking LinkedIn from fetching it, or the image may sit in a protected directory.</p>
+    <h3>How do I refresh a LinkedIn link preview?</h3>
+    <p>Enter the URL in LinkedIn Post Inspector, which fetches the page again. The new preview applies to new posts only; posts already shared keep the old one. LinkedIn's troubleshooting article also says to allow 48 hours for tag changes to take effect.</p>
+    <h3>Does LinkedIn play og:video?</h3>
+    <p>No video was seen in Check My OG's tests. LinkedIn shows og:image with the title and description, so set a good og:image even on a page that has og:video.</p>
+    <h3>Is there an alternative to LinkedIn Post Inspector?</h3>
+    <p>Post Inspector is LinkedIn's official tool for refreshing its cache, and Check My OG cannot do that. Check My OG is free and needs no sign-in: it shows how the link previews in LinkedIn and other apps at once, and tests the og:image and og:video files.</p>
+  </section>
+
+  <h2>Sources</h2>
+  <ul class="sources">
+    <li><a href="https://www.linkedin.com/help/linkedin/answer/a521928">LinkedIn Help: Make your website shareable on LinkedIn</a></li>
+    <li><a href="https://www.linkedin.com/help/linkedin/answer/a6233775">LinkedIn Help: Use Post Inspector to refresh URL</a></li>
+    <li><a href="https://www.linkedin.com/help/linkedin/answer/a525063">LinkedIn Help: Troubleshooting issues sharing URLs</a></li>
+    <li><a href="https://www.linkedin.com/post-inspector/">LinkedIn Post Inspector</a></li>
+    <li><a href="/support.json">Check My OG platform data (support.json), LinkedIn entry and refresh tip</a></li>
+    <li><a href="https://ogp.me/">The Open Graph protocol</a></li>
+  </ul>
+</main>
+<footer class="site-foot">
+  <p>Open source (MIT). An app behaves differently than this page says? <a href="https://github.com/twidtwid/checkmyog/issues/new/choose">Open an issue</a> or <a href="https://github.com/twidtwid/checkmyog/blob/main/CONTRIBUTING.md">send a pull request</a>.</p>
+</footer>
+</body>
+</html>

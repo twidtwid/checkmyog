@@ -301,6 +301,14 @@ details > summary { cursor: pointer; color: var(--muted); font-size: 12px; font-
   display: flex; flex-wrap: wrap; gap: 6px 24px; justify-content: space-between; }
 .site-foot p { margin: 0; text-wrap: balance; }
 .site-foot a { color: var(--muted); white-space: nowrap; }
+/* Tabs: the checker and the guide pages. Same rules in guide.css. */
+.tabs { border-top: 1px solid var(--line); }
+.tabs-in { max-width: 1440px; margin: 0 auto; padding: 0 16px; display: flex; gap: 4px; overflow-x: auto; scrollbar-width: none; }
+.tabs-in::-webkit-scrollbar { display: none; }
+.tabs a { padding: 8px 10px 6px; font-size: 13px; color: var(--muted); text-decoration: none; white-space: nowrap; border-bottom: 2px solid transparent; }
+.tabs a:hover { color: var(--fg); }
+.tabs a[aria-current="page"] { color: var(--fg); font-weight: 600; border-bottom-color: var(--accent); }
+@media (max-width: 520px) { .tabs-in { gap: 0; padding: 0 8px; } .tabs a { padding: 8px 7px 6px; } }
 [hidden] { display: none !important; }
 </style>
 <script>
@@ -325,7 +333,7 @@ posthog.init(PH_KEY, { api_host: PH_HOST, persistence: "memory", person_profiles
   </form>
   <span class="meta" id="meta"></span>
   <nav class="specs" aria-label="Specs"><a href="https://ogp.me/" target="_blank" rel="noopener">Open Graph spec</a> · <a href="https://ogp.me/#structured" target="_blank" rel="noopener">og:video</a> · <a href="/llms.txt">llms.txt</a> · <a href="https://github.com/twidtwid/checkmyog" data-track="github_click" data-track-to="nav">GitHub</a></nav>
-</div></header>
+</div>{{TABS}}</header>
 <div class="examples" role="group" aria-label="Examples">Examples:
     <button type="button" class="pill" data-example="spalterdigital" data-url="https://spalterdigital.com/"><span>spalterdigital.com</span><small>og:video</small></button>
     <button type="button" class="pill" data-example="titleart" data-url="https://titleart.dvy.io/"><span>titleart.dvy.io</span><small>WordArt video</small></button>

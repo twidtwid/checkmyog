@@ -451,6 +451,25 @@ def build_id() -> str:
 
 BUILD = build_id()
 
+# The checker plus one guide page per app or tag: path, tab label, file in public/.
+GUIDES = [("/", "Checker", None),
+          ("/og-video", "og:video", "og-video.html"),
+          ("/imessage", "iMessage", "imessage.html"),
+          ("/discord", "Discord", "discord.html"),
+          ("/slack", "Slack", "slack.html"),
+          ("/linkedin", "LinkedIn", "linkedin.html")]
+# /imessage.html and /imessage/ go to /imessage, so the raw template is never served
+# and each guide has one address.
+GUIDE_ALIASES = {alias: path for path, _, name in GUIDES if name for alias in ("/" + name, path + "/")}
+
+
+def tabs_html(path: str) -> str:
+    """The tab row under the top bar. Plain links, so crawlers follow them."""
+    path = "/" if path == "/index.html" else path
+    links = "".join(f'<a href="{p}"' + (' aria-current="page"' if p == path else "") + f">{label}</a>"
+                    for p, label, _ in GUIDES)
+    return f'<nav class="tabs" aria-label="Pages"><div class="tabs-in">{links}</div></nav>'
+
 
 def load_support() -> dict:
     try:
@@ -616,6 +635,7 @@ class Handler(SimpleHTTPRequestHandler):
                  "/index.html": ("index.html", "text/html; charset=utf-8"),
                  "/llms.txt": ("llms.txt", "text/plain; charset=utf-8"),
                  "/openapi.json": ("openapi.json", "application/json")}
+    TEMPLATES.update({path: (name, "text/html; charset=utf-8") for path, _, name in GUIDES if name})
     # Other hostnames this app answers for, each with its own front page: the
     # 77-character test domain serves a page whose og set is correct, so whatever an
     # app does with that link, it is the length of the domain and nothing else.
@@ -627,7 +647,7 @@ class Handler(SimpleHTTPRequestHandler):
         host = (self.headers.get("Host") or "").split(":")[0].lower()
         host_url = ("https://" + host) if host in self.HOST_PAGES else PUBLIC_URL
         fills = {"PUBLIC_URL": PUBLIC_URL, "POSTHOG_KEY": POSTHOG_KEY, "POSTHOG_HOST": POSTHOG_HOST,
-                 "HOST_URL": host_url, "BUILD": BUILD}
+                 "HOST_URL": host_url, "BUILD": BUILD, "TABS": tabs_html(urlsplit(self.path).path)}
         if "{{PLATFORM_ROWS}}" in text:
             fills.update(support_html())
         for k, v in fills.items():
@@ -698,6 +718,11 @@ class Handler(SimpleHTTPRequestHandler):
         host = (self.headers.get("Host") or "").split(":")[0].lower()
         if u.path in ("/", "/index.html") and host in self.HOST_PAGES:
             return self._template(self.HOST_PAGES[host], "text/html; charset=utf-8")
+        if u.path in GUIDE_ALIASES:
+            self.send_response(301)
+            self.send_header("Location", GUIDE_ALIASES[u.path] + (f"?{u.query}" if u.query else ""))
+            self.send_header("Content-Length", "0")
+            return self.end_headers()
         if u.path in self.TEMPLATES:
             return self._template(*self.TEMPLATES[u.path])
         if u.path == "/api/stats":

@@ -1,0 +1,159 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>iMessage Link Preview Checker and Guide | Check My OG</title>
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="canonical" href="{{PUBLIC_URL}}/imessage">
+<link rel="stylesheet" href="/guide.css">
+<meta name="description" content="Check how a link previews in iMessage: the tags Messages reads, Apple's image and size limits, video autoplay, and fixes when a rich preview won't show.">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="Check My OG">
+<meta property="og:url" content="{{PUBLIC_URL}}/imessage">
+<meta property="og:title" content="iMessage link preview checker">
+<meta property="og:description" content="See your iMessage preview before you send it. Which tags Messages reads, Apple's 1 MB and 10 MB limits, and when og:video autoplays.">
+<meta property="og:image" content="{{PUBLIC_URL}}/og.png?v=ca11a0873c">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Check My OG: link preview checker for og:image and og:video">
+<meta name="twitter:card" content="summary_large_image">
+<script type="application/ld+json">
+[
+ {"@context": "https://schema.org", "@type": "TechArticle", "headline": "iMessage link preview checker", "url": "{{PUBLIC_URL}}/imessage",
+  "description": "Check how a link previews in iMessage: the tags Messages reads, Apple's image and size limits, video autoplay, and fixes when a rich preview won't show.", "dateModified": "2026-11-02", "image": "{{PUBLIC_URL}}/og.png?v=ca11a0873c",
+  "publisher": {"@type": "Organization", "name": "Dayward AI", "url": "https://daywardai.com/"},
+  "isPartOf": {"@type": "WebSite", "name": "Check My OG", "url": "{{PUBLIC_URL}}/"}},
+ {"@context": "https://schema.org", "@type": "BreadcrumbList", "itemListElement": [
+  {"@type": "ListItem", "position": 1, "name": "Check My OG", "item": "{{PUBLIC_URL}}/"},
+  {"@type": "ListItem", "position": 2, "name": "iMessage", "item": "{{PUBLIC_URL}}/imessage"}]},
+ {"@context": "https://schema.org", "@type": "FAQPage", "mainEntity": [
+  {"@type": "Question", "name": "Why is my iMessage link preview not showing an image?", "acceptedAnswer": {"@type": "Answer", "text": "Without a usable og:image, Messages shows a gray text bubble with the title, the domain and the site icon. Put og:image in the page HTML (Messages runs no JavaScript), check that the image loads, and make it at least 900 px wide."}},
+  {"@type": "Question", "name": "How do I make a video autoplay in an iMessage link preview?", "acceptedAnswer": {"@type": "Answer", "text": "Point og:video at a downloadable video file, such as an MP4, not at a player page. Messages plays it muted and looping. An HLS stream needs a tap. Keep the icon, image and video under 10 MB together. With autoplay off or Reduce Motion on, people see the og:image poster with a play button."}},
+  {"@type": "Question", "name": "How do I change the iMessage link preview image?", "acceptedAnswer": {"@type": "Answer", "text": "Change the og:image tag on the page and give the new image a new file URL. Then share the page with a new query string such as ?v=2, because apps cache a preview by its URL."}},
+  {"@type": "Question", "name": "What size should an iMessage preview image be?", "acceptedAnswer": {"@type": "Answer", "text": "Apple's guideline is at least 900 px wide, and images under 150 px wide may be ignored or shown as an icon. Apple names no aspect ratio. 1200 by 630 meets Apple's width and the 1.91:1 shape the checker tests for."}},
+  {"@type": "Question", "name": "How do I refresh an old iMessage link preview?", "acceptedAnswer": {"@type": "Answer", "text": "Apple's technote describes no cache time and no refresh tool. Apps cache a preview by its URL, so after you fix the tags, share the link with a new query string such as ?v=2, and give a changed og:image or og:video file a new URL too."}}
+ ]}
+]
+</script>
+<script>
+/* PostHog, cookieless (memory persistence: no cookies, no banner). The server fills in the key; with none set (self-hosting) nothing loads. */
+window.PH_KEY = "{{POSTHOG_KEY}}"; window.PH_HOST = "{{POSTHOG_HOST}}";
+if (/^phc_/.test(PH_KEY)) {
+!function(t,e){var o,n,p,r;e.__SV||(window.posthog=e,e._i=[],e.init=function(i,s,a){function g(t,e){var o=e.split(".");2==o.length&&(t=t[o[0]],e=o[1]),t[e]=function(){t.push([e].concat(Array.prototype.slice.call(arguments,0)))}}(p=t.createElement("script")).type="text/javascript",p.crossOrigin="anonymous",p.async=!0,p.src=s.api_host.replace(".i.posthog.com","-assets.i.posthog.com")+"/static/array.js",(r=t.getElementsByTagName("script")[0]).parentNode.insertBefore(p,r);var u=e;for(void 0!==a?u=e[a]=[]:a="posthog",u.people=u.people||[],u.toString=function(t){var e="posthog";return"posthog"!==a&&(e+="."+a),t||(e+=" (stub)"),e},u.people.toString=function(){return u.toString(1)+".people (stub)"},o="init capture register register_once unregister opt_out_capturing has_opted_out_capturing opt_in_capturing reset identify alias set_config".split(" "),n=0;n<o.length;n++)g(u,o[n]);e._i.push([i,s,a])},e.__SV=1)}(document,window.posthog||[]);
+posthog.init(PH_KEY, { api_host: PH_HOST, persistence: "memory", person_profiles: "identified_only", capture_pageview: false,
+  loaded: function (ph) { try { var q = new URLSearchParams(location.search), ref = q.get("ref") || q.get("utm_source"); ph.register({ site: "checkmyog" }); if (ref) ph.register({ ref: ref }); } catch (e) {} ph.capture("$pageview"); } });
+}
+</script>
+</head>
+<body>
+<header class="bar"><div class="bar-in">
+  <a class="brand" href="/">Check My OG</a>
+  <form action="/" method="get">
+    <label for="u" hidden>Page URL</label>
+    <input id="u" name="url" type="text" inputmode="url" autocomplete="url" spellcheck="false" placeholder="https://example.com/" required>
+    <button type="submit">Check</button>
+  </form>
+  <a class="by" href="https://daywardai.com/?utm_source=checkmyog" data-track="dayward_click"><svg viewBox="0 0 16 16" aria-hidden="true"><defs><clipPath id="dwm"><circle cx="8" cy="8" r="8"/></clipPath></defs><g clip-path="url(#dwm)"><rect width="16" height="10" fill="#2443C4"/><circle cx="8" cy="9" r="5" fill="#E06A42"/><rect y="8" width="16" height="1" fill="#2443C4"/><rect y="10" width="16" height="6" fill="#7A95EE"/></g></svg><span>Made by Dayward AI</span></a>
+</div>{{TABS}}</header>
+<main class="guide">
+  <h1>iMessage link preview checker</h1>
+  <p class="lede">Messages builds a link preview from a few Open Graph tags on your page. This page covers which tags it reads, Apple's size limits, when a video autoplays, and how to fix a preview that won't show.</p>
+  <div class="check">
+    <p>Paste a URL to see its iMessage card and test it against Apple's 1 MB page and 10 MB media guidelines.</p>
+    <form action="/" method="get"><label for="u2" hidden>Page URL</label><input id="u2" name="url" type="text" inputmode="url" spellcheck="false" placeholder="https://example.com/" required><button type="submit">Check</button></form>
+  </div>
+
+  <h2>What Messages reads</h2>
+  <p>Apple's technote TN3156 lists the tags Messages uses for a rich preview. They have to be in the HTML of the page at the link: Messages does not run JavaScript and does not follow <code>meta</code> refresh redirects. It does follow server-side redirects.</p>
+  <table>
+    <thead><tr><th>Tag</th><th>What Messages does with it</th></tr></thead>
+    <tbody>
+      <tr><td><code>og:title</code></td><td>The card title. Apple asks for a short title that tells pages on the same site apart, with no site name in it.</td></tr>
+      <tr><td><code>og:site_name</code></td><td>Where the site name and branding go, instead of the title.</td></tr>
+      <tr><td><code>og:image</code></td><td>The preview image. Apple advises against text in it, because it is shown at different sizes on different devices.</td></tr>
+      <tr><td><code>og:video</code> or <code>twitter:player:stream</code></td><td>A video file that Messages downloads and plays in the card.</td></tr>
+      <tr><td><code>apple-touch-icon</code>, a favicon, or a <code>&lt;link rel="..."&gt;</code> icon</td><td>The small site icon. Apple asks for a high-resolution icon as well as the image.</td></tr>
+    </tbody>
+  </table>
+  <p>A page with an image and a video looks like this. Per <a href="https://ogp.me/">ogp.me</a>, the tags go in the <code>&lt;head&gt;</code>.</p>
+  <pre><code>&lt;meta property="og:title" content="Spring catalog"&gt;
+&lt;meta property="og:site_name" content="Example Shop"&gt;
+&lt;meta property="og:image" content="https://example.com/og.png"&gt;
+&lt;meta property="og:video" content="https://example.com/og.mp4"&gt;
+&lt;meta property="og:video:type" content="video/mp4"&gt;
+&lt;link rel="apple-touch-icon" href="/apple-touch-icon.png"&gt;</code></pre>
+  <p>Serve the same tags to every user agent, mobile and desktop. Pages behind a login should still carry metadata for the page itself (without anything sensitive), or every link previews as "Sign In".</p>
+
+  <h2>Image, icon and size limits</h2>
+  <table>
+    <thead><tr><th>What</th><th>Apple's guideline</th></tr></thead>
+    <tbody>
+      <tr><td>Image width</td><td>At least 900 px. Under 150 px wide may be ignored or shown as an icon.</td></tr>
+      <tr><td>Icon</td><td>Square, at least 108 px per side.</td></tr>
+      <tr><td>The page at the link (the HTML)</td><td>1 MB</td></tr>
+      <tr><td>Icon, image and video together</td><td>10 MB</td></tr>
+    </tbody>
+  </table>
+  <p>Apple calls these guidelines and says the limits may change. It names no aspect ratio; the checker tests og:image for 1.91:1 at 600 px or wider, so 1200 by 630 passes both. The checker counts the video plus poster against 10 MB (the icon is small).</p>
+
+  <h2>Video autoplay in iMessage</h2>
+  <p>Point <code>og:video</code> straight at the file, not at a page with a player in it. Apple's technote says Messages downloads a playable file (it gives an MPEG-4 file as the example) and plays it back on its own. A stream that can't be downloaded, such as HLS, needs a tap. A video that needs embed HTML doesn't play inline.</p>
+  <p>In a device test on 24 Oct 2026, Messages played the MP4 muted and looping. With autoplay off or Reduce Motion on, it showed the poster with a play button, and that poster is <code>og:image</code>. So set both tags: every other app except Discord shows the image anyway (see <a href="/og-video">the og:video guide</a> and <a href="/discord">Discord</a>).</p>
+  <p>Beyond Apple's rules, the checker tests what makes an MP4 play in most players: served as <code>video/mp4</code> over https, range requests answered with 206, faststart (the <code>moov</code> box before <code>mdat</code>), H.264 and yuv420p.</p>
+
+  <h2>How the preview looks</h2>
+  <table>
+    <thead><tr><th>The page has</th><th>The person sees</th></tr></thead>
+    <tbody>
+      <tr><td><code>og:title</code> and <code>og:image</code></td><td>A card with the image and the title.</td></tr>
+      <tr><td><code>og:video</code> pointing at an MP4</td><td>The video plays in the card, muted and looping.</td></tr>
+      <tr><td>The same, with autoplay off or Reduce Motion on</td><td>The <code>og:image</code> poster with a play button.</td></tr>
+      <tr><td><code>og:video</code> pointing at an HLS stream</td><td>A video that needs a tap to play.</td></tr>
+      <tr><td>No <code>og:image</code></td><td>A gray text bubble with the title, the domain and the site icon.</td></tr>
+    </tbody>
+  </table>
+
+  <h2>Common problems and fixes</h2>
+  <table>
+    <thead><tr><th>What you see</th><th>Fix</th></tr></thead>
+    <tbody>
+      <tr><td>A gray bubble with no image</td><td>Add <code>og:image</code> to the HTML and check that the image loads and is at least 900 px wide.</td></tr>
+      <tr><td>A gray bubble, though the browser's inspector shows the tags</td><td>The tags are probably added by JavaScript, which Messages doesn't run. Put them in the HTML the server sends.</td></tr>
+      <tr><td>No rich preview for a link that redirects with a <code>meta</code> refresh</td><td>Messages doesn't follow it. Use a server-side redirect.</td></tr>
+      <tr><td>Every link says "Sign In"</td><td>Give pages behind a login their own metadata, with nothing sensitive in it.</td></tr>
+      <tr><td>The video shows a play button instead of playing</td><td><code>og:video</code> is a stream, or the person has autoplay off or Reduce Motion on. Use a downloadable MP4 for the first case; the second is their setting.</td></tr>
+      <tr><td>Only the image shows, no video</td><td><code>og:video</code> points at a player page. Point it at the MP4 file, and keep the icon, image and video under 10 MB.</td></tr>
+    </tbody>
+  </table>
+  <p>The checker reports most of these. Run it on <a href="/?url=https://checkmyog.com/">checkmyog.com itself</a> to see a page that passes every check.</p>
+
+  <h2>Clearing a cached preview</h2>
+  <p>TN3156 describes no cache time and no tool to refresh a preview. Apps cache a preview by its URL, so after you fix the tags an app can keep showing the old card. Share the link with a new query string, such as <code>?v=2</code>, and give a changed og:image or og:video file a new URL too. Other apps handle this differently: see <a href="/discord">Discord</a>, <a href="/slack">Slack</a> and <a href="/linkedin">LinkedIn</a>.</p>
+
+  <section class="faq">
+    <h2>Questions</h2>
+    <h3>Why is my iMessage link preview not showing an image?</h3>
+    <p>Without a usable og:image, Messages shows a gray text bubble with the title, the domain and the site icon. Put og:image in the page HTML (Messages runs no JavaScript), check that the image loads, and make it at least 900 px wide.</p>
+    <h3>How do I make a video autoplay in an iMessage link preview?</h3>
+    <p>Point og:video at a downloadable video file, such as an MP4, not at a player page. Messages plays it muted and looping. An HLS stream needs a tap. Keep the icon, image and video under 10 MB together. With autoplay off or Reduce Motion on, people see the og:image poster with a play button.</p>
+    <h3>How do I change the iMessage link preview image?</h3>
+    <p>Change the og:image tag on the page and give the new image a new file URL. Then share the page with a new query string such as ?v=2, because apps cache a preview by its URL.</p>
+    <h3>What size should an iMessage preview image be?</h3>
+    <p>Apple's guideline is at least 900 px wide, and images under 150 px wide may be ignored or shown as an icon. Apple names no aspect ratio. 1200 by 630 meets Apple's width and the 1.91:1 shape the checker tests for.</p>
+    <h3>How do I refresh an old iMessage link preview?</h3>
+    <p>Apple's technote describes no cache time and no refresh tool. Apps cache a preview by its URL, so after you fix the tags, share the link with a new query string such as ?v=2, and give a changed og:image or og:video file a new URL too.</p>
+  </section>
+
+  <h2>Sources</h2>
+  <ul class="sources">
+    <li><a href="https://developer.apple.com/documentation/technotes/tn3156-create-rich-previews-for-messages">Apple TN3156: Create rich previews for Messages</a> (April 2024)</li>
+    <li><a href="/support.json">Check My OG platform data (support.json)</a>: iMessage device test, 24 Oct 2026, and the cache tip</li>
+    <li><a href="https://ogp.me/">The Open Graph protocol (ogp.me)</a></li>
+  </ul>
+</main>
+<footer class="site-foot">
+  <p>Open source (MIT). An app behaves differently than this page says? <a href="https://github.com/twidtwid/checkmyog/issues/new/choose">Open an issue</a> or <a href="https://github.com/twidtwid/checkmyog/blob/main/CONTRIBUTING.md">send a pull request</a>.</p>
+</footer>
+</body>
+</html>
