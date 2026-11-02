@@ -72,7 +72,7 @@ posthog.init(PH_KEY, { api_host: PH_HOST, persistence: "memory", person_profiles
     <li>at most 50 MB returned</li>
     <li>the whole fetch, including measuring your image and video, done within 10 seconds</li>
   </ul>
-  <p>A page with no <code>og:</code> or <code>twitter:</code> tags gets no embed at all, only the link. Check My OG device-tested this on 24 Oct 2026 on the Mac and iOS clients, with a page that had only a <code>&lt;title&gt;</code> and a meta description.</p>
+  <p>A page with no <code>og:</code> or <code>twitter:</code> tags gets no embed at all, only the link. Check My OG device-tested this on 24 Oct 2026 on the Mac and iOS clients, with a page that had only a <code>&lt;title&gt;</code> and a meta description. Discord's docs say otherwise: they list the <code>&lt;title&gt;</code> and meta description, used as a pair, as a fallback when there are no title and description tags. If you rely on that fallback, test your own page in Discord.</p>
   <p>A minimal set that gives a large-image embed:</p>
 <pre><code>&lt;meta property="og:site_name" content="Example"&gt;
 &lt;meta property="og:title" content="Page title"&gt;

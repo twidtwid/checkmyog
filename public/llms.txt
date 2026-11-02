@@ -54,8 +54,8 @@ Errors are JSON `{"error": "..."}` with status 400 (bad or refused URL: private 
 
 ## Pages without og:image, or without any og tags
 
-- No og:image: iMessage, Facebook, LinkedIn, Slack and WhatsApp still make a text-only card from og:title or the page <title>; iMessage adds the site icon (apple-touch-icon, else the favicon; `card.icon` in the API). Discord makes a text embed, X a small summary card.
-- No og: or twitter: tags at all (`card.og_tags` is 0): Discord shows no embed and X no card, just the link. Device-tested 24 Oct 2026 on Discord (Mac and iOS) with a page that had only a <title> and a meta description; Facebook's Sharing Debugger and Messages showed text cards for the same page.
+- No og:image: iMessage and Facebook still make a text-only card from og:title or the page <title> (tested 24 Oct 2026); LinkedIn, Slack and WhatsApp don't document this case. iMessage adds the site icon (apple-touch-icon, else the favicon; `card.icon` in the API). Discord makes a text embed, X a small summary card.
+- No og: or twitter: tags at all (`card.og_tags` is 0): Discord shows no embed and X no card, just the link. Device-tested 24 Oct 2026 on Discord (Mac and iOS) with a page that had only a <title> and a meta description; Facebook's Sharing Debugger and Messages showed text cards for the same page. Discord's docs say it falls back to the <title> and meta description as a pair; the device test did not show that, so re-test before relying on either. Slack's platform blog says it falls back to the meta description and shows no unfurl without one (https://medium.com/slack-developer-blog/everything-you-ever-wanted-to-know-about-unfurling-but-were-afraid-to-ask-or-how-to-make-your-e64b4bb9254).
 
 ## Specs
 

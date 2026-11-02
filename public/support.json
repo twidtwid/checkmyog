@@ -12,7 +12,7 @@
   {
    "platform": "Discord",
    "status": "plays",
-   "note": "Inline player with a play button; does not autoplay. Device-tested 24 Oct 2026 on the Mac and iOS clients with a plain og:type website page and a direct MP4. Discord's docs only describe og:type video.* or twitter:card player; neither was needed. Without any og: or twitter: tags: no embed at all, just the link (device-tested 24 Oct 2026, Mac and iOS, on a page with only a <title> and meta description). Discord's docs: MP4, WebM or MOV; the fetch returns at most 50 MB and must finish, measuring the image and video included, within 10 seconds.",
+   "note": "Inline player with a play button; does not autoplay. Device-tested 24 Oct 2026 on the Mac and iOS clients with a plain og:type website page and a direct MP4. Discord's docs only describe og:type video.* or twitter:card player; neither was needed. Without any og: or twitter: tags: no embed at all, just the link (device-tested 24 Oct 2026, Mac and iOS, on a page with only a <title> and meta description). Discord's docs say the <title> and meta description are used as a pair when there are no title and description tags; re-test. Discord's docs: MP4, WebM or MOV; the fetch returns at most 50 MB and must finish, measuring the image and video included, within 10 seconds.",
    "source": "https://docs.discord.com/developers/link-previews/overview",
    "source_date": "n.d.",
    "refresh": "Caches previews for about 30 minutes; until then, resharing the same URL shows the old card. Share it with a new query string such as ?v=2, or look it up in the Embed Debugger (discord.com/developers/embeds).",
@@ -44,7 +44,9 @@
    "status": "poster",
    "note": "Classic unfurls read Open Graph and Twitter Card tags and show og:image; video players only for sites Slack handles itself, or through an app unfurl.",
    "source": "https://docs.slack.dev/messaging/unfurling-links-in-messages/#classic_unfurl",
-   "source_date": "n.d."
+   "source_date": "n.d.",
+   "refresh": "Caches each URL across the service for about 30 minutes and documents no way to clear it. Wait that long, or share the link with a new query string such as ?v=2.",
+   "refresh_source": "https://api.slack.com/robots"
   },
   {
    "platform": "Bluesky",
