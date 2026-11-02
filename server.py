@@ -553,10 +553,12 @@ def to_markdown(r: dict) -> str:
     if sm["everywhere_else"] == "poster":
         out.append("- Everywhere else: og:image poster")
     elif c.get("og_tags"):
-        out.append("- Everywhere else: text-only card (no og:image)")
+        out.append("- Everywhere else: no og:image, so no picture: iMessage and Facebook make a text-only card; "
+                   "Discord a text embed; X a small card")
     else:
-        out.append("- Everywhere else: no og tags at all: Discord and X show just the link; iMessage, Facebook, LinkedIn, "
-                   "Slack and WhatsApp make a text-only card from the page title")
+        out.append("- Everywhere else: no og tags at all: Discord and X show just the link; iMessage and Facebook make a "
+                   "text-only card from the page title; Slack falls back to the meta description and shows nothing "
+                   "without one; LinkedIn and WhatsApp document nothing for this case")
     notes = sum(1 for x in r["checks"] if x.get("info"))
     out.append(f"- Checks: {sm['checks_passed']} passed, {len(sm['checks_failed'])} failed"
                + (f", {notes} note{'s' if notes > 1 else ''}" if notes else ""))
