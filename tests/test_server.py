@@ -279,6 +279,41 @@ class EndToEnd(unittest.TestCase):
             self.assertIn(q["name"], shown)
             self.assertIn(q["acceptedAnswer"]["text"], shown)
 
+    def test_guide_pages(self):
+        """Each guide is filled, marks its own tab, names itself canonical, is in the
+        sitemap, and its FAQ structured data matches what is shown."""
+        import html as h, re as r
+        sitemap = open(os.path.join(server.ROOT, "sitemap.xml"), encoding="utf-8").read()
+        squash = lambda s: " ".join(s.split())  # noqa: E731 — line breaks inside a <p>
+        for path, label, name in server.GUIDES:
+            with self.subTest(path=path):
+                self.assertIn(f"<loc>https://checkmyog.com{path}</loc>", sitemap)
+                code, ctype, body = self.get(path)
+                self.assertEqual((code, ctype), (200, "text/html; charset=utf-8"))
+                self.assertNotIn("{{", body)
+                self.assertIn(f'<a href="{path}" aria-current="page">{label}</a>', body)
+                if not name:
+                    continue
+                self.assertIn(f'<link rel="canonical" href="{server.PUBLIC_URL}{path}">', body)
+                self.assertEqual(len(r.findall(r"<h1[ >]", body)), 1)
+                blocks = [json.loads(b) for b in r.findall(r'<script type="application/ld\+json">(.*?)</script>', body, r.S)]
+                faq = next(x for x in blocks[0] if x["@type"] == "FAQPage")
+                shown = squash(h.unescape(r.sub(r"<[^>]+>", "", r.sub(r"<(script|style)\b.*?</\1>", "", body, flags=r.S))))
+                for q in faq["mainEntity"]:
+                    self.assertIn(squash(q["name"]), shown)
+                    self.assertIn(squash(q["acceptedAnswer"]["text"]), shown)
+
+    def test_guide_aliases_redirect(self):
+        import http.client
+        for alias, target in (("/imessage.html", "/imessage"), ("/og-video/", "/og-video"), ("/slack.html?x=1", "/slack?x=1")):
+            with self.subTest(alias=alias):
+                c = http.client.HTTPConnection("127.0.0.1", self.app.server_address[1], timeout=10)
+                c.request("GET", alias)
+                resp = c.getresponse()
+                resp.read()
+                c.close()
+                self.assertEqual((resp.status, resp.getheader("Location")), (301, target))
+
     def test_static_range(self):
         size = os.path.getsize(os.path.join(server.ROOT, "og.mp4"))
 

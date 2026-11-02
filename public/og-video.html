@@ -1,0 +1,174 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>og:video checker: test video link previews | Check My OG</title>
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="canonical" href="{{PUBLIC_URL}}/og-video">
+<link rel="stylesheet" href="/guide.css">
+<meta name="description" content="Test og:video tags and the MP4 behind them: H.264, yuv420p, faststart, range requests, size. See which apps play the video and which show og:image.">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="Check My OG">
+<meta property="og:url" content="{{PUBLIC_URL}}/og-video">
+<meta property="og:title" content="og:video checker: make link previews play video">
+<meta property="og:description" content="Which apps play og:video, which show og:image, and what the MP4 file needs. Test a URL free.">
+<meta property="og:image" content="{{PUBLIC_URL}}/og.png?v=ca11a0873c">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Check My OG: link preview checker for og:image and og:video">
+<meta name="twitter:card" content="summary_large_image">
+<script type="application/ld+json">
+[
+ {"@context": "https://schema.org", "@type": "TechArticle", "headline": "og:video checker: make link previews play video", "url": "{{PUBLIC_URL}}/og-video",
+  "description": "Test og:video tags and the MP4 behind them: H.264, yuv420p, faststart, range requests, size. See which apps play the video and which show og:image.", "dateModified": "2026-11-02", "image": "{{PUBLIC_URL}}/og.png?v=ca11a0873c",
+  "publisher": {"@type": "Organization", "name": "Dayward AI", "url": "https://daywardai.com/"},
+  "isPartOf": {"@type": "WebSite", "name": "Check My OG", "url": "{{PUBLIC_URL}}/"}},
+ {"@context": "https://schema.org", "@type": "BreadcrumbList", "itemListElement": [
+  {"@type": "ListItem", "position": 1, "name": "Check My OG", "item": "{{PUBLIC_URL}}/"},
+  {"@type": "ListItem", "position": 2, "name": "og:video", "item": "{{PUBLIC_URL}}/og-video"}]},
+ {"@context": "https://schema.org", "@type": "FAQPage", "mainEntity": [
+  {"@type": "Question", "name": "Which apps play og:video?", "acceptedAnswer": {"@type": "Answer", "text": "iMessage autoplays it, muted and looping. Discord shows an inline player you tap to play. X, Facebook, Telegram, WhatsApp, Slack, LinkedIn, Bluesky, Mastodon, Signal and Matrix show og:image instead."}},
+  {"@type": "Question", "name": "Why is my video link preview not working?", "acceptedAnswer": {"@type": "Answer", "text": "Most often og:video points at a player page instead of an MP4 file, or the file misses one requirement: H.264, yuv420p, faststart, served as video/mp4 over https with range requests. Also make sure you are testing in iMessage or Discord, the only apps that play it."}},
+  {"@type": "Question", "name": "Can og:video point to a YouTube or Vimeo link?", "acceptedAnswer": {"@type": "Answer", "text": "No. Apple says videos that need embedding HTML will not play inline in Messages, and Discord's docs say to point og:video directly at the video file. Use the URL of the MP4 itself."}},
+  {"@type": "Question", "name": "Do I still need og:image if I have og:video?", "acceptedAnswer": {"@type": "Answer", "text": "Yes. Most apps show og:image and never play the video, iMessage shows it when autoplay is off, and Discord's docs say og:image is required to render the video."}},
+  {"@type": "Question", "name": "Is og:video:secure_url required?", "acceptedAnswer": {"@type": "Answer", "text": "The Open Graph spec describes it as an alternate URL for pages that need HTTPS. Facebook asks for it even when og:video is already https, so set both tags to the same https URL."}}
+ ]}
+]
+</script>
+<script>
+/* PostHog, cookieless (memory persistence: no cookies, no banner). The server fills in the key; with none set (self-hosting) nothing loads. */
+window.PH_KEY = "{{POSTHOG_KEY}}"; window.PH_HOST = "{{POSTHOG_HOST}}";
+if (/^phc_/.test(PH_KEY)) {
+!function(t,e){var o,n,p,r;e.__SV||(window.posthog=e,e._i=[],e.init=function(i,s,a){function g(t,e){var o=e.split(".");2==o.length&&(t=t[o[0]],e=o[1]),t[e]=function(){t.push([e].concat(Array.prototype.slice.call(arguments,0)))}}(p=t.createElement("script")).type="text/javascript",p.crossOrigin="anonymous",p.async=!0,p.src=s.api_host.replace(".i.posthog.com","-assets.i.posthog.com")+"/static/array.js",(r=t.getElementsByTagName("script")[0]).parentNode.insertBefore(p,r);var u=e;for(void 0!==a?u=e[a]=[]:a="posthog",u.people=u.people||[],u.toString=function(t){var e="posthog";return"posthog"!==a&&(e+="."+a),t||(e+=" (stub)"),e},u.people.toString=function(){return u.toString(1)+".people (stub)"},o="init capture register register_once unregister opt_out_capturing has_opted_out_capturing opt_in_capturing reset identify alias set_config".split(" "),n=0;n<o.length;n++)g(u,o[n]);e._i.push([i,s,a])},e.__SV=1)}(document,window.posthog||[]);
+posthog.init(PH_KEY, { api_host: PH_HOST, persistence: "memory", person_profiles: "identified_only", capture_pageview: false,
+  loaded: function (ph) { try { var q = new URLSearchParams(location.search), ref = q.get("ref") || q.get("utm_source"); ph.register({ site: "checkmyog" }); if (ref) ph.register({ ref: ref }); } catch (e) {} ph.capture("$pageview"); } });
+}
+</script>
+</head>
+<body>
+<header class="bar"><div class="bar-in">
+  <a class="brand" href="/">Check My OG</a>
+  <form action="/" method="get">
+    <label for="u" hidden>Page URL</label>
+    <input id="u" name="url" type="text" inputmode="url" autocomplete="url" spellcheck="false" placeholder="https://example.com/" required>
+    <button type="submit">Check</button>
+  </form>
+  <a class="by" href="https://daywardai.com/?utm_source=checkmyog" data-track="dayward_click"><svg viewBox="0 0 16 16" aria-hidden="true"><defs><clipPath id="dwm"><circle cx="8" cy="8" r="8"/></clipPath></defs><g clip-path="url(#dwm)"><rect width="16" height="10" fill="#2443C4"/><circle cx="8" cy="9" r="5" fill="#E06A42"/><rect y="8" width="16" height="1" fill="#2443C4"/><rect y="10" width="16" height="6" fill="#7A95EE"/></g></svg><span>Made by Dayward AI</span></a>
+</div>{{TABS}}</header>
+<main class="guide">
+  <h1>og:video checker: make link previews play video</h1>
+  <p class="lede">og:video is the Open Graph tag that points a link preview at a video file. Two apps play it: iMessage and Discord. Every other app tested shows og:image. This page covers the tags, the MP4 file they point at, and what to fix when the video doesn't play.</p>
+  <div class="check">
+    <p>Paste a page URL. Check My OG reads its og:video tags, downloads the MP4 and probes it: codec, pixel format, faststart, content type, range requests and size.</p>
+    <form action="/" method="get"><label for="u2" hidden>Page URL</label><input id="u2" name="url" type="text" inputmode="url" spellcheck="false" placeholder="https://example.com/" required><button type="submit">Check</button></form>
+  </div>
+
+  <h2>What og:video is</h2>
+  <p>The Open Graph protocol lists <code>og:video</code> as an optional property, described as "A URL to a video file that complements this object" (ogp.me). It takes the same structured properties as <code>og:image</code>. Put them after the <code>og:video</code> tag they describe.</p>
+  <table>
+    <tr><th>Tag</th><th>What it holds</th></tr>
+    <tr><td><code>og:video</code></td><td>The URL of the video file. <code>og:video:url</code> means the same thing.</td></tr>
+    <tr><td><code>og:video:secure_url</code></td><td>An https URL for the same file. Facebook asks for it even when <code>og:video</code> is already https.</td></tr>
+    <tr><td><code>og:video:type</code></td><td>The MIME type. Use <code>video/mp4</code>.</td></tr>
+    <tr><td><code>og:video:width</code>, <code>og:video:height</code></td><td>The size in pixels. Facebook calls them required. Discord measures the file itself.</td></tr>
+  </table>
+
+  <h2>Tags that work</h2>
+  <p>This is the tag set on the Check My OG home page, which passes every check.</p>
+<pre><code>&lt;meta property="og:type" content="website"&gt;
+&lt;meta property="og:title" content="Your page title"&gt;
+&lt;meta property="og:video" content="https://example.com/preview.mp4"&gt;
+&lt;meta property="og:video:secure_url" content="https://example.com/preview.mp4"&gt;
+&lt;meta property="og:video:type" content="video/mp4"&gt;
+&lt;meta property="og:video:width" content="1200"&gt;
+&lt;meta property="og:video:height" content="630"&gt;
+&lt;meta property="og:image" content="https://example.com/preview.png"&gt;
+&lt;meta property="og:image:width" content="1200"&gt;
+&lt;meta property="og:image:height" content="630"&gt;
+&lt;meta property="og:image:alt" content="What the image shows"&gt;
+&lt;meta name="twitter:card" content="summary_large_image"&gt;</code></pre>
+  <p>Discord's docs say to set <code>og:type</code> to <code>video.*</code> or <code>twitter:card</code> to <code>player</code>. In Check My OG's device test (24 Oct 2026, Mac and iOS) a plain <code>og:type</code> website page with a direct MP4 played without either.</p>
+
+  <h2>Which apps play og:video</h2>
+  <table>
+    <tr><th>App</th><th>What it shows</th></tr>
+    <tr><td><a href="/imessage">iMessage</a></td><td>Plays. Autoplays the MP4 muted and looping. With autoplay off or Reduce Motion on, the poster with a play button. A video that can only be streamed (HLS) needs a tap.</td></tr>
+    <tr><td><a href="/discord">Discord</a></td><td>Plays. An inline player with a play button; it doesn't autoplay.</td></tr>
+    <tr><td>X (Twitter)</td><td>og:image. The large card needs <code>twitter:card</code> set to <code>summary_large_image</code>.</td></tr>
+    <tr><td>Facebook</td><td>og:image. Its docs call an MP4 only "eligible" for inline play; in testing it showed the image.</td></tr>
+    <tr><td><a href="/slack">Slack</a></td><td>og:image. Video players only for sites Slack handles itself, or through an app unfurl.</td></tr>
+    <tr><td><a href="/linkedin">LinkedIn</a></td><td>og:image, title and description. No video seen.</td></tr>
+    <tr><td>Bluesky</td><td>og:image. Link cards have no video field.</td></tr>
+    <tr><td>Mastodon</td><td>og:image. Video cards come from oEmbed, not og:video.</td></tr>
+    <tr><td>WhatsApp, Telegram, Signal, Matrix / Element</td><td>og:image.</td></tr>
+  </table>
+  <p>Status as of 26 Oct 2026, from <a href="/support.json">support.json</a>. Not yet tested: Messenger, Instagram DMs, Threads, Reddit, Teams, Google Chat and a few others.</p>
+
+  <h2>What the MP4 file needs</h2>
+  <p>Check My OG runs these checks on the file og:video points at.</p>
+  <table>
+    <tr><th>Check</th><th>Why</th></tr>
+    <tr><td>A direct link to the file</td><td>Apple says videos that need embedding HTML won't play inline in Messages. Discord says to point og:video directly at the file. A YouTube or Vimeo page URL fails the content type check below.</td></tr>
+    <tr><td>Absolute https URL</td><td>Discord's docs ask for https. Facebook asks for an https URL for inline play.</td></tr>
+    <tr><td>Answers 200, served as <code>video/mp4</code></td><td>The checker fetches the file as Twitterbot and reads the Content-Type header. Apple asks servers to send the correct MIME type for .mp4 files.</td></tr>
+    <tr><td>Range requests (206)</td><td>Apple says iOS needs byte-range requests for random access in media playback.</td></tr>
+    <tr><td>Faststart (<code>moov</code> before <code>mdat</code>)</td><td>FFmpeg's guide: with the index first, the video can start playing before it fully downloads.</td></tr>
+    <tr><td>H.264 and <code>yuv420p</code></td><td>FFmpeg's H.264 guide says QuickTime and most other players only support 4:2:0 chroma subsampling for H.264.</td></tr>
+    <tr><td>Real size matches the tags</td><td>The file's width and height should equal <code>og:video:width</code> and <code>og:video:height</code>.</td></tr>
+    <tr><td>Video under 50 MB</td><td>Discord's fetch returns at most 50 MB and must finish, measuring the image and video included, within 10 seconds.</td></tr>
+    <tr><td>Video plus poster under 10 MB, page under 1 MB</td><td>Apple's guideline: the page itself under 1 MB; icons, images and video together under 10 MB.</td></tr>
+  </table>
+  <p>One FFmpeg command fixes the codec, pixel format and faststart checks:</p>
+<pre><code>ffmpeg -i input.mov -c:v libx264 -pix_fmt yuv420p -movflags +faststart preview.mp4</code></pre>
+
+  <h2>Why og:image still matters</h2>
+  <p>Ten of the twelve apps above show only og:image. iMessage shows it as the poster when autoplay is off. Discord's docs say og:image is required to render the video and becomes its preview frame. The checker tests the poster too: PNG, JPEG, GIF or WebP, at least 600 px wide at 1.91:1, the same shape as the video, under 5 MB. Apple suggests 900 px or wider for Messages. The video's first frame is a good choice.</p>
+
+  <h2>Common problems and fixes</h2>
+  <ul>
+    <li>The card shows the image in X, Slack or LinkedIn and never plays. That is expected: those apps don't play og:video. Test in iMessage or Discord.</li>
+    <li>og:video points at a YouTube, Vimeo or player page and nothing plays. Point it at the .mp4 file itself.</li>
+    <li>The checker reports the video served as <code>text/html</code> or <code>application/octet-stream</code>. The URL leads to a page, or the server sends the wrong type: set <code>video/mp4</code> for .mp4 files.</li>
+    <li>Range requests fail (200 instead of 206). Turn on byte ranges at your host or CDN. Apple suggests testing with <code>curl --range 0-99</code>: a server that supports ranges returns 100 bytes.</li>
+    <li>Faststart, H.264 or yuv420p fails. Re-encode with the FFmpeg command above.</li>
+    <li>iMessage shows a play button instead of autoplaying. Autoplay is off or Reduce Motion is on for that device, or the video is a stream (HLS) rather than a downloadable MP4.</li>
+    <li>Discord shows a plain card with no player. Check that og:image is set, the file is under 50 MB, and the whole fetch finishes in 10 seconds. Discord also drops the video when it can't measure the file and no width and height are given.</li>
+  </ul>
+
+  <h2>Clearing a cached preview</h2>
+  <p>Apps cache a preview by its URL, so a fixed page can keep showing the old card. Discord holds one for about 30 minutes; its Embed Debugger (discord.com/developers/embeds) shows how it reads a URL. Facebook's Sharing Debugger fetches the page again, but caches images by URL. Bluesky saves the card into each post, so only a new post fetches the page again. In every app, share the link with a new query string such as <code>?v=2</code>, and give a changed video or image file a new URL too.</p>
+
+  <section class="faq">
+    <h2>Questions</h2>
+    <h3>Which apps play og:video?</h3>
+    <p>iMessage autoplays it, muted and looping. Discord shows an inline player you tap to play. X, Facebook, Telegram, WhatsApp, Slack, LinkedIn, Bluesky, Mastodon, Signal and Matrix show og:image instead.</p>
+    <h3>Why is my video link preview not working?</h3>
+    <p>Most often og:video points at a player page instead of an MP4 file, or the file misses one requirement: H.264, yuv420p, faststart, served as video/mp4 over https with range requests. Also make sure you are testing in iMessage or Discord, the only apps that play it.</p>
+    <h3>Can og:video point to a YouTube or Vimeo link?</h3>
+    <p>No. Apple says videos that need embedding HTML will not play inline in Messages, and Discord's docs say to point og:video directly at the video file. Use the URL of the MP4 itself.</p>
+    <h3>Do I still need og:image if I have og:video?</h3>
+    <p>Yes. Most apps show og:image and never play the video, iMessage shows it when autoplay is off, and Discord's docs say og:image is required to render the video.</p>
+    <h3>Is og:video:secure_url required?</h3>
+    <p>The Open Graph spec describes it as an alternate URL for pages that need HTTPS. Facebook asks for it even when og:video is already https, so set both tags to the same https URL.</p>
+  </section>
+
+  <h2>Sources</h2>
+  <ul class="sources">
+    <li><a href="https://ogp.me/#structured">The Open Graph protocol: structured properties (og:video)</a></li>
+    <li><a href="https://developer.apple.com/documentation/technotes/tn3156-create-rich-previews-for-messages">Apple TN3156: Create rich previews for Messages</a></li>
+    <li><a href="https://developer.apple.com/library/archive/documentation/AppleApplications/Reference/SafariWebContent/CreatingVideoforSafarioniPhone/CreatingVideoforSafarioniPhone.html">Apple Safari Web Content Guide: Creating video (byte-range requests, MIME types)</a></li>
+    <li><a href="https://docs.discord.com/developers/link-previews/overview">Discord: Link previews overview</a></li>
+    <li><a href="https://developers.facebook.com/documentation/sharing/webmasters">Facebook: Sharing for webmasters</a></li>
+    <li><a href="https://docs.slack.dev/messaging/unfurling-links-in-messages/#classic_unfurl">Slack: Unfurling links in messages</a></li>
+    <li><a href="https://docs.bsky.app/docs/advanced-guides/posts#website-card-embeds">Bluesky: Website card embeds</a></li>
+    <li><a href="https://docs.joinmastodon.org/entities/PreviewCard/">Mastodon: PreviewCard</a></li>
+    <li><a href="https://trac.ffmpeg.org/wiki/Encode/H.264">FFmpeg: H.264 encoding guide (yuv420p, faststart)</a></li>
+    <li><a href="/support.json">Check My OG platform data (support.json), with a source and test date for each app</a></li>
+  </ul>
+</main>
+<footer class="site-foot">
+  <p>Open source (MIT). An app behaves differently than this page says? <a href="https://github.com/twidtwid/checkmyog/issues/new/choose">Open an issue</a> or <a href="https://github.com/twidtwid/checkmyog/blob/main/CONTRIBUTING.md">send a pull request</a>.</p>
+</footer>
+</body>
+</html>

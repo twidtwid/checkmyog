@@ -26,8 +26,11 @@ jobs:
           curl -fsS https://checkmyog.com/ | grep -q "Check My OG"
       - name: Tell search engines the page changed (IndexNow)
         # Bing, Yandex and the other IndexNow engines share pings; the key file is public/<key>.txt.
+        # Sends every URL in the sitemap.
         # Best effort: a failed ping never fails the deploy.
         run: |
           key=$(ls public | sed -nE 's/^([0-9a-f]{32})\.txt$/\1/p' | head -1)
-          curl -sS -o /dev/null -w "IndexNow: HTTP %{http_code}\n" \
-            "https://api.indexnow.org/indexnow?url=https://checkmyog.com/&key=$key" || true
+          urls=$(grep -oE '<loc>[^<]+</loc>' public/sitemap.xml | sed -E 's#</?loc>##g; s#.*#"&"#' | paste -sd, -)
+          curl -sS -o /dev/null -w "IndexNow: HTTP %{http_code}\n" -H "Content-Type: application/json; charset=utf-8" \
+            -d "{\"host\":\"checkmyog.com\",\"key\":\"$key\",\"urlList\":[$urls]}" \
+            https://api.indexnow.org/indexnow || true

@@ -64,6 +64,14 @@ Errors are JSON `{"error": "..."}` with status 400 (bad or refused URL: private 
 - Discord link previews (documents og:type video.* and twitter:card player; a direct MP4 in og:video embedded without them in our test): https://docs.discord.com/developers/link-previews/overview
 - X has no current public cards documentation; its old Card Validator was retired.
 
+## Guides for people
+
+- og:video, which apps play it and what the file needs: {{PUBLIC_URL}}/og-video
+- iMessage rich link previews: {{PUBLIC_URL}}/imessage
+- Discord embeds: {{PUBLIC_URL}}/discord
+- Slack unfurls: {{PUBLIC_URL}}/slack
+- LinkedIn link previews: {{PUBLIC_URL}}/linkedin
+
 ## Other files
 
 - OpenAPI spec: {{PUBLIC_URL}}/openapi.json

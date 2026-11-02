@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Slack Link Preview Checker: How Slack Unfurls | Check My OG</title>
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="canonical" href="{{PUBLIC_URL}}/slack">
+<link rel="stylesheet" href="/guide.css">
+<meta name="description" content="Check how Slack unfurls your link: the Open Graph, Twitter Card and oEmbed tags Slackbot reads, why a preview is missing, and how to get past a cached one.">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="Check My OG">
+<meta property="og:url" content="{{PUBLIC_URL}}/slack">
+<meta property="og:title" content="Slack link preview checker: how Slack unfurls your links">
+<meta property="og:description" content="Which tags Slackbot-LinkExpanding reads, why Slack shows og:image and not og:video, and what to fix when a Slack preview is missing or stuck.">
+<meta property="og:image" content="{{PUBLIC_URL}}/og.png?v=ca11a0873c">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Check My OG: link preview checker for og:image and og:video">
+<meta name="twitter:card" content="summary_large_image">
+<script type="application/ld+json">
+[
+ {"@context": "https://schema.org", "@type": "TechArticle", "headline": "Slack link preview checker: how Slack unfurls your links", "url": "{{PUBLIC_URL}}/slack",
+  "description": "Check how Slack unfurls your link: the Open Graph, Twitter Card and oEmbed tags Slackbot reads, why a preview is missing, and how to get past a cached one.", "dateModified": "2026-11-02", "image": "{{PUBLIC_URL}}/og.png?v=ca11a0873c",
+  "publisher": {"@type": "Organization", "name": "Dayward AI", "url": "https://daywardai.com/"},
+  "isPartOf": {"@type": "WebSite", "name": "Check My OG", "url": "{{PUBLIC_URL}}/"}},
+ {"@context": "https://schema.org", "@type": "BreadcrumbList", "itemListElement": [
+  {"@type": "ListItem", "position": 1, "name": "Check My OG", "item": "{{PUBLIC_URL}}/"},
+  {"@type": "ListItem", "position": 2, "name": "Slack", "item": "{{PUBLIC_URL}}/slack"}]},
+ {"@context": "https://schema.org", "@type": "FAQPage", "mainEntity": [
+  {"@type": "Question", "name": "Why is my Slack link preview not showing?", "acceptedAnswer": {"@type": "Answer", "text": "Most often the page has no Open Graph or Twitter Card tags, or Slack can't fetch it because it is private or a firewall blocks the Slackbot-LinkExpanding user agent. Slack also skips a link shared in the same conversation within the past hour, every link in a message with more than five, and a link without http:// or https://."}},
+  {"@type": "Question", "name": "Does Slack play og:video?", "acceptedAnswer": {"@type": "Answer", "text": "No. A classic Slack unfurl shows og:image. Slack plays video only for services it handles itself or through a Slack app's own unfurl, so for your own pages og:image is what Slack users see."}},
+  {"@type": "Question", "name": "How do I refresh a Slack link preview?", "acceptedAnswer": {"@type": "Answer", "text": "Slack documents no way to clear its cache. It caches each URL for around 30 minutes, so wait that long or share the link with a new query string such as ?v=2. Give a changed og:image a new file URL too."}},
+  {"@type": "Question", "name": "What user agent does Slack use to fetch link previews?", "acceptedAnswer": {"@type": "Answer", "text": "Slackbot-LinkExpanding 1.0 (+https://api.slack.com/robots). Slack does not read robots.txt, so robots.txt neither blocks nor allows it. A firewall or bot filter that blocks this user agent stops the preview."}}
+ ]}
+]
+</script>
+<script>
+/* PostHog, cookieless (memory persistence: no cookies, no banner). The server fills in the key; with none set (self-hosting) nothing loads. */
+window.PH_KEY = "{{POSTHOG_KEY}}"; window.PH_HOST = "{{POSTHOG_HOST}}";
+if (/^phc_/.test(PH_KEY)) {
+!function(t,e){var o,n,p,r;e.__SV||(window.posthog=e,e._i=[],e.init=function(i,s,a){function g(t,e){var o=e.split(".");2==o.length&&(t=t[o[0]],e=o[1]),t[e]=function(){t.push([e].concat(Array.prototype.slice.call(arguments,0)))}}(p=t.createElement("script")).type="text/javascript",p.crossOrigin="anonymous",p.async=!0,p.src=s.api_host.replace(".i.posthog.com","-assets.i.posthog.com")+"/static/array.js",(r=t.getElementsByTagName("script")[0]).parentNode.insertBefore(p,r);var u=e;for(void 0!==a?u=e[a]=[]:a="posthog",u.people=u.people||[],u.toString=function(t){var e="posthog";return"posthog"!==a&&(e+="."+a),t||(e+=" (stub)"),e},u.people.toString=function(){return u.toString(1)+".people (stub)"},o="init capture register register_once unregister opt_out_capturing has_opted_out_capturing opt_in_capturing reset identify alias set_config".split(" "),n=0;n<o.length;n++)g(u,o[n]);e._i.push([i,s,a])},e.__SV=1)}(document,window.posthog||[]);
+posthog.init(PH_KEY, { api_host: PH_HOST, persistence: "memory", person_profiles: "identified_only", capture_pageview: false,
+  loaded: function (ph) { try { var q = new URLSearchParams(location.search), ref = q.get("ref") || q.get("utm_source"); ph.register({ site: "checkmyog" }); if (ref) ph.register({ ref: ref }); } catch (e) {} ph.capture("$pageview"); } });
+}
+</script>
+</head>
+<body>
+<header class="bar"><div class="bar-in">
+  <a class="brand" href="/">Check My OG</a>
+  <form action="/" method="get">
+    <label for="u" hidden>Page URL</label>
+    <input id="u" name="url" type="text" inputmode="url" autocomplete="url" spellcheck="false" placeholder="https://example.com/" required>
+    <button type="submit">Check</button>
+  </form>
+  <a class="by" href="https://daywardai.com/?utm_source=checkmyog" data-track="dayward_click"><svg viewBox="0 0 16 16" aria-hidden="true"><defs><clipPath id="dwm"><circle cx="8" cy="8" r="8"/></clipPath></defs><g clip-path="url(#dwm)"><rect width="16" height="10" fill="#2443C4"/><circle cx="8" cy="9" r="5" fill="#E06A42"/><rect y="8" width="16" height="1" fill="#2443C4"/><rect y="10" width="16" height="6" fill="#7A95EE"/></g></svg><span>Made by Dayward AI</span></a>
+</div>{{TABS}}</header>
+<main class="guide">
+  <h1>Slack link preview checker: how Slack unfurls your links</h1>
+  <p class="lede">When someone pastes a link into Slack, Slack fetches the page, reads its oEmbed, Open Graph and Twitter Card tags, and posts a preview under the message. Slack calls this an unfurl. It shows og:image, not your og:video, so the image is the part to get right.</p>
+  <div class="check">
+    <p>Paste a URL to see the Open Graph and Twitter Card tags Slack reads, and whether your og:image loads as a real image.</p>
+    <form action="/" method="get"><label for="u2" hidden>Page URL</label><input id="u2" name="url" type="text" inputmode="url" spellcheck="false" placeholder="https://example.com/" required><button type="submit">Check</button></form>
+  </div>
+
+  <h2>What Slack reads</h2>
+  <p>The fetch comes from a robot that identifies itself with this user agent:</p>
+  <pre><code>Slackbot-LinkExpanding 1.0 (+https://api.slack.com/robots)</code></pre>
+  <p>Slack's robots page says it fetches as little of the page as it can, using HTTP Range headers, and looks for oEmbed, Twitter Card and Open Graph tags. If those tags point at an image, video or audio file, it fetches that file too to check that it is valid. Since Slack reads only the start of the page, keep the meta tags near the top of <code>&lt;head&gt;</code>.</p>
+  <p>Slack's platform blog (2015) gives the order: an oEmbed endpoint first, then Twitter Card or Open Graph tags (whichever comes first in the HTML), then the plain meta description. If none of them is there, Slack shows no unfurl.</p>
+  <table>
+    <thead><tr><th>Tag</th><th>What Slack does with it</th></tr></thead>
+    <tbody>
+      <tr><td><code>og:title</code>, <code>twitter:title</code></td><td>The preview's title.</td></tr>
+      <tr><td><code>og:description</code>, <code>twitter:description</code></td><td>The text under the title. Without them Slack falls back to <code>&lt;meta name="description"&gt;</code>.</td></tr>
+      <tr><td><code>og:image</code>, <code>twitter:image</code></td><td>The picture. Slack fetches the file to check it. Use an absolute URL: the blog's own example of a relative path showed no image.</td></tr>
+      <tr><td><code>twitter:card</code> = <code>summary_large_image</code></td><td>The blog says this gets the largest image Slack shows.</td></tr>
+      <tr><td><code>twitter:label1</code> / <code>twitter:data1</code></td><td>Extra label and value rows, such as a price or a date, on any card type.</td></tr>
+      <tr><td><code>og:video</code></td><td>Not played. See the next section.</td></tr>
+    </tbody>
+  </table>
+  <p>A head that covers Slack and the other apps:</p>
+  <pre><code>&lt;meta property="og:title" content="Your page title"&gt;
+&lt;meta property="og:description" content="One or two sentences."&gt;
+&lt;meta property="og:image" content="https://example.com/card.png"&gt;
+&lt;meta property="og:image:alt" content="What the image shows"&gt;
+&lt;meta name="twitter:card" content="summary_large_image"&gt;</code></pre>
+
+  <h2>Image vs video in Slack</h2>
+  <p>A classic Slack unfurl reads Open Graph and Twitter Card tags and shows og:image. Slack plays video only for sites it handles itself, or when a Slack app registered for your domain posts its own unfurl. Slack's help center adds that audio and video links from a service not on its allowlist won't expand at all. So a page with og:video still needs og:image for Slack; the <a href="/og-video">og:video guide</a> covers the apps that do play it, like <a href="/imessage">iMessage</a> and <a href="/discord">Discord</a>.</p>
+
+  <h2>How the preview looks</h2>
+  <p>The preview sits just below the message. To remove one, hover over it and click the x on desktop, or long press the link and tap Remove Link Preview on mobile. Each person can also turn previews off under Preferences, Messages &amp; media, and workspace admins can block previews from a whole website.</p>
+
+  <h2>Slack link preview not showing: causes and fixes</h2>
+  <table>
+    <thead><tr><th>Symptom</th><th>Fix</th></tr></thead>
+    <tbody>
+      <tr><td>No preview at all, on any message</td><td>The page has no preview data. Add the tags above, then <a href="/?url=">run the checker</a>.</td></tr>
+      <tr><td>No preview for a page that needs a login</td><td>Slack doesn't preview private pages or files, such as password-protected videos.</td></tr>
+      <tr><td>No preview, and your server blocks bots</td><td>Let <code>Slackbot-LinkExpanding</code> through your firewall or bot filter. robots.txt is not the cause: Slack doesn't read it.</td></tr>
+      <tr><td>Text shows but the image doesn't</td><td>Make og:image an absolute URL to a file that loads. Slack fetches the image to check that it is valid; the checker shows whether it answers 200 as an image.</td></tr>
+      <tr><td>The same link, shared again, doesn't expand</td><td>Slack skips a link shared in the same conversation within the past hour.</td></tr>
+      <tr><td>A message with many links shows none</td><td>Slack expands nothing in a message with more than five links.</td></tr>
+      <tr><td>A bare <code>example.com/page</code> doesn't expand</td><td>Include <code>https://</code>. Slack unfurls only fully qualified URLs.</td></tr>
+      <tr><td>Previews work for others but not in your workspace</td><td>An admin may have blocked your site. It is listed under Workspace settings, Attachments, Blocked previews.</td></tr>
+      <tr><td>Links your bot posts don't unfurl</td><td>Pass <code>"unfurl_links": true</code> (pages) or <code>"unfurl_media": true</code> (media) with <code>chat.postMessage</code> or the webhook. A link whose label is the URL minus the protocol never unfurls.</td></tr>
+    </tbody>
+  </table>
+
+  <h2>Clearing a cached Slack preview</h2>
+  <p>Slack documents no button or API to clear a cached preview. Its robots page says responses are cached across the whole service for around 30 minutes, so Slack won't fetch the same URL again sooner than that. After you fix your tags:</p>
+  <ul>
+    <li>Wait 30 minutes and share the link again, in a different conversation if it went out in the past hour.</li>
+    <li>Or share it with a new query string, such as <code>?v=2</code>. That is a different URL, so the cached copy doesn't apply.</li>
+    <li>If you changed the image, give the file a new URL too, not just new bytes at the old one.</li>
+  </ul>
+  <p>Slack's help center also points web admins to its URL debugging tool, which shows the preview data Slack pulls from a link. The other apps cache differently; the <a href="/">checker</a> lists each one under "Stuck on an old preview?".</p>
+
+  <h2>What Check My OG checks for Slack</h2>
+  <p>The checker fetches your page as Twitterbot and facebookexternalhit, not as Slackbot, and reads the same Open Graph and Twitter Card tags Slack does. It doesn't read oEmbed. It then downloads og:image and checks that it answers 200 as an image, is PNG, JPEG, GIF or WebP, is a large 1.91:1 card at least 600 px wide, matches og:image:width and og:image:height, is 5 MB or less and has alt text. Those are general rules for every app; Slack publishes no image size limit of its own. Slack's card is drawn in the "Facebook, LinkedIn, Slack, WhatsApp" preview. The <a href="/linkedin">LinkedIn guide</a> covers the next app that relies on og:image alone.</p>
+
+  <section class="faq">
+    <h2>Questions</h2>
+    <h3>Why is my Slack link preview not showing?</h3>
+    <p>Most often the page has no Open Graph or Twitter Card tags, or Slack can't fetch it because it is private or a firewall blocks the Slackbot-LinkExpanding user agent. Slack also skips a link shared in the same conversation within the past hour, every link in a message with more than five, and a link without http:// or https://.</p>
+    <h3>Does Slack play og:video?</h3>
+    <p>No. A classic Slack unfurl shows og:image. Slack plays video only for services it handles itself or through a Slack app's own unfurl, so for your own pages og:image is what Slack users see.</p>
+    <h3>How do I refresh a Slack link preview?</h3>
+    <p>Slack documents no way to clear its cache. It caches each URL for around 30 minutes, so wait that long or share the link with a new query string such as ?v=2. Give a changed og:image a new file URL too.</p>
+    <h3>What user agent does Slack use to fetch link previews?</h3>
+    <p>Slackbot-LinkExpanding 1.0 (+https://api.slack.com/robots). Slack does not read robots.txt, so robots.txt neither blocks nor allows it. A firewall or bot filter that blocks this user agent stops the preview.</p>
+  </section>
+
+  <h2>Sources</h2>
+  <ul class="sources">
+    <li><a href="https://api.slack.com/robots">Slack: Slack Robots (Slackbot-LinkExpanding, Range fetches, 30-minute cache, robots.txt)</a></li>
+    <li><a href="https://docs.slack.dev/messaging/unfurling-links-in-messages/">Slack Developer Docs: Unfurling links in messages</a></li>
+    <li><a href="https://slack.com/help/articles/204399343-Share-links-and-set-preview-preferences">Slack Help Center: Share links and set preview preferences</a></li>
+    <li><a href="https://slack.com/help/articles/360001502048-Manage-link-previews">Slack Help Center: Manage link previews</a></li>
+    <li><a href="https://medium.com/slack-developer-blog/everything-you-ever-wanted-to-know-about-unfurling-but-were-afraid-to-ask-or-how-to-make-your-e64b4bb9254">Slack Platform Blog: Everything you ever wanted to know about unfurling (2015)</a></li>
+    <li><a href="/support.json">Check My OG: support.json (Slack row and refresh tip)</a></li>
+    <li><a href="https://ogp.me/">The Open Graph protocol</a></li>
+  </ul>
+</main>
+<footer class="site-foot">
+  <p>Open source (MIT). An app behaves differently than this page says? <a href="https://github.com/twidtwid/checkmyog/issues/new/choose">Open an issue</a> or <a href="https://github.com/twidtwid/checkmyog/blob/main/CONTRIBUTING.md">send a pull request</a>.</p>
+</footer>
+</body>
+</html>
